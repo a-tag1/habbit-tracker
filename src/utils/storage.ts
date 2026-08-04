@@ -7,17 +7,21 @@ const defaultGachaData: GachaData = {
   coins: 0,
   ownedCards: [],
   dailyBonuses: [],
+  customSeasons: [],
+  activeSeasonId: null,
 };
 
 export function loadGachaData(): GachaData {
   try {
     const raw = localStorage.getItem(GACHA_STORAGE_KEY);
     if (!raw) return defaultGachaData;
-    const parsed = JSON.parse(raw) as GachaData;
+    const parsed = JSON.parse(raw) as Partial<GachaData>;
     return {
       coins: typeof parsed.coins === 'number' ? parsed.coins : 0,
       ownedCards: Array.isArray(parsed.ownedCards) ? parsed.ownedCards : [],
       dailyBonuses: Array.isArray(parsed.dailyBonuses) ? parsed.dailyBonuses : [],
+      customSeasons: Array.isArray(parsed.customSeasons) ? parsed.customSeasons : [],
+      activeSeasonId: parsed.activeSeasonId ?? null,
     };
   } catch {
     return defaultGachaData;

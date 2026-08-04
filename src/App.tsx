@@ -32,12 +32,16 @@ function App() {
   const {
     coins,
     ownedCards,
+    customSeasons,
+    activeSeasonId,
     lastCoinGain,
     gainKey,
     earnCoins,
     spendCoins,
     refundCoins,
     addOwnedCards,
+    createSeason,
+    switchSeason,
   } = useCoin()
 
   const handleSetStatus = useCallback((date: string, taskId: string, status: TaskStatus) => {
@@ -103,9 +107,13 @@ function App() {
           <GachaView
             coins={coins}
             ownedCards={ownedCards}
+            customSeasons={customSeasons}
+            activeSeasonId={activeSeasonId}
             onSpendCoins={spendCoins}
             onAddCards={addOwnedCards}
             onAddCoins={refundCoins}
+            onCreateSeason={createSeason}
+            onSwitchSeason={switchSeason}
           />
         )}
       </main>

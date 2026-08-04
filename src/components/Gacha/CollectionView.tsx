@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { OwnedCard, Rarity } from '../../types';
+import type { OwnedCard, Rarity, CustomSeason, CardMaster } from '../../types';
 import { CARD_MASTER } from '../../utils/cardMaster';
 
 const RARITY_STYLE: Record<Rarity, { border: string; text: string; bg: string }> = {
@@ -11,27 +11,59 @@ const RARITY_STYLE: Record<Rarity, { border: string; text: string; bg: string }>
 
 interface Props {
   ownedCards: OwnedCard[];
+  customSeasons: CustomSeason[];
+  activeSeasonId: string | null;
 }
 
-export default function CollectionView({ ownedCards }: Props) {
+export default function CollectionView({ ownedCards, customSeasons, activeSeasonId }: Props) {
+  const [viewingSeason, setViewingSeason] = useState<string | null>(activeSeasonId);
   const [selected, setSelected] = useState<OwnedCard | null>(null);
 
-  const ownedByMasterId = new Map(ownedCards.map(c => [c.cardMasterId, c]));
-  const owned = ownedCards.length;
-  const total = CARD_MASTER.length;
+  const viewingCards: CardMaster[] = viewingSeason === null
+    ? CARD_MASTER
+    : (customSeasons.find(s => s.id === viewingSeason)?.cards ?? CARD_MASTER);
+
+  const ownedInSeason = ownedCards.filter(c =>
+    viewingSeason === null ? !c.seasonId : c.seasonId === viewingSeason
+  );
+  const ownedByMasterId = new Map(ownedInSeason.map(c => [c.cardMasterId, c]));
+  const total = viewingCards.length;
+  const owned = ownedInSeason.length;
 
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
-      {/* 取得率バー */}
+      {/* シーズンタブ + 取得率バー */}
       <div className="px-4 py-3 border-b border-zinc-800 shrink-0">
+        {/* シーズンタブ */}
+        {customSeasons.length > 0 && (
+          <div className="flex gap-1.5 overflow-x-auto pb-2 -mx-1 px-1">
+            <button
+              onClick={() => setViewingSeason(null)}
+              className={`shrink-0 px-3 py-1 rounded-full text-xs font-medium border transition-all ${viewingSeason === null ? 'bg-zinc-600 border-zinc-500 text-zinc-100' : 'bg-zinc-800 border-zinc-700 text-zinc-500'}`}
+            >
+              ベース
+            </button>
+            {customSeasons.map(s => (
+              <button
+                key={s.id}
+                onClick={() => setViewingSeason(s.id)}
+                className={`shrink-0 px-3 py-1 rounded-full text-xs font-medium border transition-all ${viewingSeason === s.id ? 'bg-yellow-600/30 border-yellow-500 text-yellow-300' : 'bg-zinc-800 border-zinc-700 text-zinc-500'}`}
+              >
+                {s.theme}
+              </button>
+            ))}
+          </div>
+        )}
         <div className="flex items-center justify-between mb-1.5">
-          <span className="text-xs text-zinc-400 font-medium">コレクション</span>
+          <span className="text-xs text-zinc-400 font-medium">
+            {viewingSeason === null ? 'ベースシーズン' : customSeasons.find(s => s.id === viewingSeason)?.theme}
+          </span>
           <span className="text-xs font-mono text-zinc-300">{owned} / {total} 枚</span>
         </div>
         <div className="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
           <div
             className="h-full bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full transition-all duration-500"
-            style={{ width: `${(owned / total) * 100}%` }}
+            style={{ width: `${total > 0 ? (owned / total) * 100 : 0}%` }}
           />
         </div>
       </div>
@@ -39,7 +71,7 @@ export default function CollectionView({ ownedCards }: Props) {
       {/* カードグリッド */}
       <div className="flex-1 overflow-y-auto px-3 py-3">
         <div className="grid grid-cols-3 gap-2">
-          {CARD_MASTER.map(master => {
+          {viewingCards.map(master => {
             const card = ownedByMasterId.get(master.id);
             const style = RARITY_STYLE[master.rarity];
 

@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback } from 'react';
-import type { GachaData, OwnedCard } from '../types';
+import type { GachaData, OwnedCard, CustomSeason } from '../types';
 import { loadGachaData, saveGachaData } from '../utils/storage';
+import { generateSeasonCards } from '../utils/seasonGenerator';
 
 export function useCoin() {
   const [gachaData, setGachaData] = useState<GachaData>(() => loadGachaData());
@@ -67,18 +68,34 @@ export function useCoin() {
 
   const refundCoins = useCallback((amount: number) => {
     const prev = dataRef.current;
-    const next = { ...prev, coins: prev.coins + amount };
-    persist(next);
+    persist({ ...prev, coins: prev.coins + amount });
+  }, [persist]);
+
+  const createSeason = useCallback((theme: string) => {
+    const prev = dataRef.current;
+    const seasonId = `season_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+    const cards = generateSeasonCards(theme, seasonId);
+    const season: CustomSeason = { id: seasonId, theme, cards, createdAt: new Date().toISOString() };
+    persist({ ...prev, customSeasons: [...prev.customSeasons, season], activeSeasonId: seasonId });
+  }, [persist]);
+
+  const switchSeason = useCallback((seasonId: string | null) => {
+    const prev = dataRef.current;
+    persist({ ...prev, activeSeasonId: seasonId });
   }, [persist]);
 
   return {
     coins: gachaData.coins,
     ownedCards: gachaData.ownedCards,
+    customSeasons: gachaData.customSeasons,
+    activeSeasonId: gachaData.activeSeasonId,
     lastCoinGain,
     gainKey,
     earnCoins,
     spendCoins,
     refundCoins,
     addOwnedCards,
+    createSeason,
+    switchSeason,
   };
 }

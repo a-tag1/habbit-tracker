@@ -50,6 +50,7 @@ export interface OwnedCard {
   imageUrl: string;
   cheerMessage: string;
   obtainedAt: string;
+  seasonId?: string; // undefined = base season
 }
 
 export interface DailyBonus {
@@ -59,8 +60,17 @@ export interface DailyBonus {
   complete: boolean;
 }
 
+export interface CustomSeason {
+  id: string;
+  theme: string;
+  cards: CardMaster[];
+  createdAt: string;
+}
+
 export interface GachaData {
   coins: number;
   ownedCards: OwnedCard[];
   dailyBonuses: DailyBonus[];
+  customSeasons: CustomSeason[];
+  activeSeasonId: string | null;
 }

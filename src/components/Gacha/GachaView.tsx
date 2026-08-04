@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
-import type { OwnedCard, Rarity } from '../../types';
-import { drawCards, GACHA_COST_SINGLE, GACHA_COST_MULTI, DUPLICATE_REFUND, type GachaDraw } from '../../utils/gachaUtils';
+﻿import { useState, useEffect, useRef, useMemo } from 'react';
+import type { OwnedCard, Rarity, CustomSeason, CardMaster } from '../../types';
+import { drawCards, GACHA_COST_SINGLE, GACHA_COST_MULTI, DUPLICATE_REFUND, type GachaDraw, type DrawContext } from '../../utils/gachaUtils';
 import { CARD_MASTER } from '../../utils/cardMaster';
 import CollectionView from './CollectionView';
 
@@ -10,17 +10,23 @@ type SubTab = 'gacha' | 'collection';
 interface Props {
   coins: number;
   ownedCards: OwnedCard[];
+  customSeasons: CustomSeason[];
+  activeSeasonId: string | null;
   onSpendCoins: (amount: number) => boolean;
   onAddCards: (cards: OwnedCard[]) => void;
   onAddCoins: (amount: number) => void;
+  onCreateSeason: (theme: string) => void;
+  onSwitchSeason: (id: string | null) => void;
 }
 
 const RARITY_STYLE: Record<Rarity, { border: string; text: string; glow: string; label: string }> = {
-  N:   { border: 'border-zinc-500',  text: 'text-zinc-400',   glow: '',                             label: 'N' },
-  R:   { border: 'border-blue-500',  text: 'text-blue-400',   glow: 'shadow-blue-500/40',            label: 'R' },
-  SR:  { border: 'border-purple-400',text: 'text-purple-400', glow: 'shadow-purple-500/50',          label: 'SR' },
-  SSR: { border: 'border-yellow-400',text: 'text-yellow-400', glow: 'shadow-yellow-400/60',          label: 'SSR' },
+  N:   { border: 'border-zinc-500',  text: 'text-zinc-400',   glow: '',                    label: 'N' },
+  R:   { border: 'border-blue-500',  text: 'text-blue-400',   glow: 'shadow-blue-500/40',  label: 'R' },
+  SR:  { border: 'border-purple-400',text: 'text-purple-400', glow: 'shadow-purple-500/50',label: 'SR' },
+  SSR: { border: 'border-yellow-400',text: 'text-yellow-400', glow: 'shadow-yellow-400/60',label: 'SSR' },
 };
+
+const EXAMPLE_THEMES = ['宇宙海賊', '和風妖怪', '魔法学校', '未来都市', '海底王国', '古代文明', 'カフェ&スイーツ', 'サムライ', '西部劇', '北欧神話'];
 
 function CardImage({ url, name, rarity }: { url: string; name: string; rarity: Rarity }) {
   const [state, setState] = useState<'loading' | 'loaded' | 'error'>('loading');
@@ -35,12 +41,7 @@ function CardImage({ url, name, rarity }: { url: string; name: string; rarity: R
           ) : (
             <>
               <span className="text-2xl">✦</span>
-              <button
-                onClick={() => { setState('loading'); setRetryKey(k => k + 1); }}
-                className="text-xs text-zinc-400 underline"
-              >
-                再読み込み
-              </button>
+              <button onClick={() => { setState('loading'); setRetryKey(k => k + 1); }} className="text-xs text-zinc-400 underline">再読み込み</button>
             </>
           )}
         </div>
@@ -60,24 +61,19 @@ function CardImage({ url, name, rarity }: { url: string; name: string; rarity: R
   );
 }
 
-function ResultCard({ draw, index, visible }: { draw: GachaDraw; index: number; visible: boolean }) {
+function ResultCard({ draw, index }: { draw: GachaDraw; index: number }) {
   const { card, isDuplicate, coinRefund } = draw;
   const style = RARITY_STYLE[card.rarity];
-
   return (
     <div
-      className={`card-reveal flex flex-col rounded-xl border-2 ${style.border} overflow-hidden bg-zinc-900 ${
-        card.rarity !== 'N' ? `shadow-lg ${style.glow}` : ''
-      }`}
-      style={{ animationDelay: `${index * 120}ms`, opacity: visible ? undefined : 0 }}
+      className={`card-reveal flex flex-col rounded-xl border-2 ${style.border} overflow-hidden bg-zinc-900 ${card.rarity !== 'N' ? `shadow-lg ${style.glow}` : ''}`}
+      style={{ animationDelay: `${index * 120}ms` }}
     >
       <CardImage url={card.imageUrl} name={card.name} rarity={card.rarity} />
       <div className="px-2 py-1.5">
         <div className="flex items-center justify-between gap-1">
           <span className={`text-[10px] font-bold ${style.text}`}>{style.label}</span>
-          {isDuplicate && (
-            <span className="text-[10px] text-yellow-400 font-bold">被り +{coinRefund}🪙</span>
-          )}
+          {isDuplicate && <span className="text-[10px] text-yellow-400 font-bold">被り +{coinRefund}🪙</span>}
         </div>
         <p className="text-[11px] text-zinc-200 font-medium leading-tight mt-0.5 truncate">{card.name}</p>
       </div>
@@ -85,7 +81,7 @@ function ResultCard({ draw, index, visible }: { draw: GachaDraw; index: number; 
   );
 }
 
-function MagicCircle() {
+function MagicCircle({ theme }: { theme?: string }) {
   return (
     <div className="flex flex-col items-center justify-center flex-1 gap-6">
       <div className="relative flex items-center justify-center w-48 h-48">
@@ -96,47 +92,127 @@ function MagicCircle() {
           <span className="text-4xl">✦</span>
         </div>
       </div>
-      <p className="text-sm text-zinc-300 animate-pulse">召喚中…</p>
+      <p className="text-sm text-zinc-300 animate-pulse">{theme ? `「${theme}」召喚中…` : '召喚中…'}</p>
     </div>
   );
 }
 
-export default function GachaView({ coins, ownedCards, onSpendCoins, onAddCards, onAddCoins }: Props) {
+function SeasonCreationModal({
+  onClose, onConfirm, isCreating,
+}: { onClose: () => void; onConfirm: (theme: string) => void; isCreating: boolean }) {
+  const [input, setInput] = useState('');
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-5" onClick={onClose}>
+      <div className="absolute inset-0 bg-black/75" />
+      <div
+        className="relative w-full max-w-sm bg-zinc-900 rounded-2xl border border-zinc-700 p-5"
+        onClick={e => e.stopPropagation()}
+      >
+        <h2 className="text-base font-bold text-zinc-100 mb-1">✦ 新シーズンを召喚</h2>
+        <p className="text-xs text-zinc-500 mb-4">好きなテーマを入力して、新しい50種のカードを生成しよう</p>
+        <input
+          type="text"
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          placeholder="例: 宇宙海賊、和風妖怪…"
+          maxLength={20}
+          className="w-full bg-zinc-800 border border-zinc-700 text-zinc-100 placeholder-zinc-600 rounded-xl px-4 py-3 text-sm outline-none focus:border-yellow-500 transition-colors mb-3"
+          autoFocus
+        />
+        <div className="flex flex-wrap gap-1.5 mb-4">
+          {EXAMPLE_THEMES.map(t => (
+            <button
+              key={t}
+              onClick={() => setInput(t)}
+              className="text-[11px] px-2.5 py-1 rounded-full bg-zinc-800 border border-zinc-700 text-zinc-400 active:bg-zinc-700 transition-colors"
+            >
+              {t}
+            </button>
+          ))}
+        </div>
+        <div className="flex gap-2">
+          <button onClick={onClose} className="flex-1 py-3 rounded-xl bg-zinc-800 text-zinc-400 text-sm">キャンセル</button>
+          <button
+            onClick={() => input.trim() && onConfirm(input.trim())}
+            disabled={!input.trim() || isCreating}
+            className="flex-1 py-3 rounded-xl bg-gradient-to-r from-yellow-600 to-orange-600 text-white text-sm font-semibold disabled:opacity-40"
+          >
+            {isCreating ? '生成中…' : '召喚する'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function GachaView({
+  coins, ownedCards, customSeasons, activeSeasonId,
+  onSpendCoins, onAddCards, onAddCoins, onCreateSeason, onSwitchSeason,
+}: Props) {
   const [subTab, setSubTab] = useState<SubTab>('gacha');
   const [phase, setPhase] = useState<GachaPhase>('idle');
   const [draws, setDraws] = useState<GachaDraw[]>([]);
   const [pullCount, setPullCount] = useState<1 | 10>(1);
+  const [showSeasonModal, setShowSeasonModal] = useState(false);
+  const [isCreatingSeason, setIsCreatingSeason] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => () => { if (timerRef.current) clearTimeout(timerRef.current); }, []);
 
-  const ownedMasterIds = new Set(ownedCards.map(c => c.cardMasterId));
+  const currentSeasonMaster: CardMaster[] = useMemo(() => {
+    if (activeSeasonId === null) return CARD_MASTER;
+    return customSeasons.find(s => s.id === activeSeasonId)?.cards ?? CARD_MASTER;
+  }, [activeSeasonId, customSeasons]);
+
+  const currentSeasonCardsByRarity = useMemo(() => ({
+    N:   currentSeasonMaster.filter(c => c.rarity === 'N'),
+    R:   currentSeasonMaster.filter(c => c.rarity === 'R'),
+    SR:  currentSeasonMaster.filter(c => c.rarity === 'SR'),
+    SSR: currentSeasonMaster.filter(c => c.rarity === 'SSR'),
+  }), [currentSeasonMaster]);
+
+  const ownedMasterIds = useMemo(() => new Set(
+    ownedCards
+      .filter(c => activeSeasonId === null ? !c.seasonId : c.seasonId === activeSeasonId)
+      .map(c => c.cardMasterId)
+  ), [ownedCards, activeSeasonId]);
+
+  const isCurrentSeasonComplete = useMemo(
+    () => currentSeasonMaster.length > 0 && currentSeasonMaster.every(c => ownedMasterIds.has(c.id)),
+    [currentSeasonMaster, ownedMasterIds]
+  );
+
+  const activeSeasonTheme = activeSeasonId === null
+    ? 'ベースシーズン'
+    : (customSeasons.find(s => s.id === activeSeasonId)?.theme ?? '');
+
+  const handleCreateSeason = (theme: string) => {
+    setIsCreatingSeason(true);
+    setTimeout(() => {
+      onCreateSeason(theme);
+      setIsCreatingSeason(false);
+      setShowSeasonModal(false);
+    }, 1200);
+  };
 
   const executePull = (count: 1 | 10) => {
     const cost = count === 1 ? GACHA_COST_SINGLE : GACHA_COST_MULTI;
     if (!onSpendCoins(cost)) return;
-
     setPullCount(count);
     setPhase('pulling');
-
     timerRef.current = setTimeout(() => {
-      const results = drawCards(count, ownedMasterIds);
+      const ctx: DrawContext | undefined = activeSeasonId !== null
+        ? { cardPool: currentSeasonCardsByRarity, seasonId: activeSeasonId }
+        : undefined;
+      const results = drawCards(count, ownedMasterIds, ctx);
       setDraws(results);
       setPhase('reveal');
-
-      // Credit refund coins for duplicates
       const refund = results.reduce((s, d) => s + d.coinRefund, 0);
       if (refund > 0) onAddCoins(refund);
-
-      // Add non-duplicate cards to collection
       const newCards = results.filter(d => !d.isDuplicate).map(d => d.card);
       if (newCards.length > 0) onAddCards(newCards);
     }, 3000);
-  };
-
-  const handleReset = () => {
-    setPhase('idle');
-    setDraws([]);
   };
 
   const totalRefund = draws.reduce((s, d) => s + d.coinRefund, 0);
@@ -152,15 +228,12 @@ export default function GachaView({ coins, ownedCards, onSpendCoins, onAddCards,
             <span className="text-sm font-mono font-bold text-yellow-400">{coins}</span>
           </div>
         </div>
-        {/* サブタブ */}
         <div className="flex rounded-xl bg-zinc-800 p-0.5 gap-0.5">
           {(['gacha', 'collection'] as const).map(tab => (
             <button
               key={tab}
               onClick={() => setSubTab(tab)}
-              className={`flex-1 py-2 rounded-[10px] text-xs font-medium transition-all ${
-                subTab === tab ? 'bg-zinc-600 text-zinc-100' : 'text-zinc-500'
-              }`}
+              className={`flex-1 py-2 rounded-[10px] text-xs font-medium transition-all ${subTab === tab ? 'bg-zinc-600 text-zinc-100' : 'text-zinc-500'}`}
             >
               {tab === 'gacha' ? '✦ ガチャ' : '⊞ 図鑑'}
             </button>
@@ -169,62 +242,98 @@ export default function GachaView({ coins, ownedCards, onSpendCoins, onAddCards,
       </div>
 
       {subTab === 'collection' ? (
-        <CollectionView ownedCards={ownedCards} />
+        <CollectionView ownedCards={ownedCards} customSeasons={customSeasons} activeSeasonId={activeSeasonId} />
       ) : (
         <div className="flex flex-col flex-1 overflow-hidden">
-          {phase === 'pulling' && <MagicCircle />}
+          {phase === 'pulling' && <MagicCircle theme={activeSeasonId !== null ? activeSeasonTheme : undefined} />}
 
           {phase === 'reveal' && (
             <div className="flex flex-col flex-1 overflow-hidden">
               <div className="flex-1 overflow-y-auto px-4 py-4">
                 {pullCount === 1 && draws[0] ? (
-                  // 単発：大きく中央表示
                   <div className="flex flex-col items-center gap-4">
-                    <div className="w-48">
-                      <ResultCard draw={draws[0]} index={0} visible={true} />
-                    </div>
+                    <div className="w-48"><ResultCard draw={draws[0]} index={0} /></div>
                     <div className={`px-4 py-3 rounded-xl bg-zinc-800 border ${RARITY_STYLE[draws[0].card.rarity].border} max-w-xs w-full`}>
-                      <p className="text-xs text-zinc-300 text-center leading-relaxed">
-                        {draws[0].card.cheerMessage}
-                      </p>
+                      <p className="text-xs text-zinc-300 text-center leading-relaxed">{draws[0].card.cheerMessage}</p>
                     </div>
-                    {totalRefund > 0 && (
-                      <p className="text-xs text-yellow-400">被りにつき {totalRefund}🪙 還元されました</p>
-                    )}
+                    {totalRefund > 0 && <p className="text-xs text-yellow-400">被りにつき {totalRefund}🪙 還元されました</p>}
                   </div>
                 ) : (
-                  // 10連：グリッド表示
                   <div className="flex flex-col gap-3">
                     <div className="grid grid-cols-3 gap-2">
-                      {draws.map((draw, i) => (
-                        <ResultCard key={draw.card.userCardId} draw={draw} index={i} visible={true} />
-                      ))}
+                      {draws.map((draw, i) => <ResultCard key={draw.card.userCardId} draw={draw} index={i} />)}
                     </div>
-                    {totalRefund > 0 && (
-                      <p className="text-xs text-yellow-400 text-center">被りにつき {totalRefund}🪙 還元されました</p>
-                    )}
+                    {totalRefund > 0 && <p className="text-xs text-yellow-400 text-center">被りにつき {totalRefund}🪙 還元されました</p>}
                   </div>
                 )}
               </div>
               <div className="px-4 py-4 border-t border-zinc-800 shrink-0">
-                <button
-                  onClick={handleReset}
-                  className="w-full py-3 rounded-xl bg-zinc-700 text-zinc-100 text-sm font-medium"
-                >
-                  戻る
-                </button>
+                <button onClick={() => { setPhase('idle'); setDraws([]); }} className="w-full py-3 rounded-xl bg-zinc-700 text-zinc-100 text-sm font-medium">戻る</button>
               </div>
             </div>
           )}
 
           {phase === 'idle' && (
-            <div className="flex flex-col flex-1 overflow-y-auto px-4 py-6 gap-6">
-              {/* ガチャ演出エリア */}
-              <div className="flex flex-col items-center justify-center py-8 gap-2">
-                <div className="w-28 h-28 rounded-full bg-gradient-to-br from-yellow-500/20 via-purple-500/15 to-blue-500/20 border border-zinc-700 flex items-center justify-center">
-                  <span className="text-5xl">✦</span>
+            <div className="flex flex-col flex-1 overflow-y-auto px-4 py-4 gap-4">
+
+              {/* シーズンセレクター */}
+              {customSeasons.length > 0 && (
+                <div>
+                  <p className="text-[10px] text-zinc-500 mb-1.5 font-medium">シーズン</p>
+                  <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1">
+                    <button
+                      onClick={() => onSwitchSeason(null)}
+                      className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${activeSeasonId === null ? 'bg-zinc-600 border-zinc-500 text-zinc-100' : 'bg-zinc-800 border-zinc-700 text-zinc-500'}`}
+                    >
+                      ベース
+                    </button>
+                    {customSeasons.map(s => (
+                      <button
+                        key={s.id}
+                        onClick={() => onSwitchSeason(s.id)}
+                        className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${activeSeasonId === s.id ? 'bg-yellow-600/30 border-yellow-500 text-yellow-300' : 'bg-zinc-800 border-zinc-700 text-zinc-500'}`}
+                      >
+                        {s.theme}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-                <p className="text-xs text-zinc-500 mt-2">AIキャラクターカードをゲットしよう</p>
+              )}
+
+              {/* コンプリートバナー */}
+              {isCurrentSeasonComplete && (
+                <div className="rounded-xl bg-gradient-to-r from-yellow-900/50 to-orange-900/50 border border-yellow-600/50 px-4 py-3">
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <span className="text-lg">🏆</span>
+                    <span className="text-sm font-bold text-yellow-300">{activeSeasonTheme} コンプリート！</span>
+                  </div>
+                  <p className="text-xs text-zinc-400 mb-3">新しいテーマで50枚の新カードを生成できます</p>
+                  <button
+                    onClick={() => setShowSeasonModal(true)}
+                    className="w-full py-2.5 rounded-lg bg-gradient-to-r from-yellow-600 to-orange-600 text-white text-sm font-semibold"
+                  >
+                    ✦ 新しいテーマを召喚する
+                  </button>
+                </div>
+              )}
+
+              {/* 現在シーズン情報 */}
+              <div className="flex items-center justify-between py-1">
+                <div>
+                  <p className="text-xs text-zinc-500">現在のシーズン</p>
+                  <p className="text-sm font-semibold text-zinc-200 mt-0.5">{activeSeasonTheme}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-zinc-500">取得枚数</p>
+                  <p className="text-sm font-mono font-bold text-yellow-400 mt-0.5">{ownedMasterIds.size} / {currentSeasonMaster.length}</p>
+                </div>
+              </div>
+
+              {/* ガチャ演出 */}
+              <div className="flex items-center justify-center py-2">
+                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-yellow-500/20 via-purple-500/15 to-blue-500/20 border border-zinc-700 flex items-center justify-center">
+                  <span className="text-4xl">✦</span>
+                </div>
               </div>
 
               {/* 排出率 */}
@@ -246,7 +355,7 @@ export default function GachaView({ coins, ownedCards, onSpendCoins, onAddCards,
                 <button
                   onClick={() => executePull(1)}
                   disabled={coins < GACHA_COST_SINGLE}
-                  className="w-full py-4 rounded-xl bg-gradient-to-r from-purple-700 to-indigo-700 text-white font-semibold text-sm disabled:opacity-40 transition-opacity active:scale-95"
+                  className="w-full py-4 rounded-xl bg-gradient-to-r from-purple-700 to-indigo-700 text-white font-semibold text-sm disabled:opacity-40 active:scale-95 transition-transform"
                 >
                   <div>1回引く</div>
                   <div className="text-xs font-normal opacity-80 mt-0.5">🪙 {GACHA_COST_SINGLE} コイン</div>
@@ -254,7 +363,7 @@ export default function GachaView({ coins, ownedCards, onSpendCoins, onAddCards,
                 <button
                   onClick={() => executePull(10)}
                   disabled={coins < GACHA_COST_MULTI}
-                  className="w-full py-4 rounded-xl bg-gradient-to-r from-yellow-600 to-orange-600 text-white font-semibold text-sm disabled:opacity-40 transition-opacity active:scale-95"
+                  className="w-full py-4 rounded-xl bg-gradient-to-r from-yellow-600 to-orange-600 text-white font-semibold text-sm disabled:opacity-40 active:scale-95 transition-transform"
                 >
                   <div>10連引く <span className="text-xs font-normal">（SR以上確定）</span></div>
                   <div className="text-xs font-normal opacity-80 mt-0.5">🪙 {GACHA_COST_MULTI} コイン <span className="opacity-70">（10%割引）</span></div>
@@ -267,17 +376,23 @@ export default function GachaView({ coins, ownedCards, onSpendCoins, onAddCards,
                 <div className="space-y-1.5 text-xs text-zinc-500">
                   <div className="flex justify-between"><span>タスク1個完了</span><span className="text-yellow-500">+5</span></div>
                   <div className="flex justify-between"><span>ハードタスク1個完了</span><span className="text-yellow-500">+10</span></div>
-                  <div className="flex justify-between"><span>その日5個完了ボーナス</span><span className="text-yellow-500">+10</span></div>
-                  <div className="flex justify-between"><span>その日10個完了ボーナス</span><span className="text-yellow-500">+20</span></div>
-                  <div className="flex justify-between"><span>デイリーコンプリート</span><span className="text-yellow-500">+20</span></div>
+                  <div className="flex justify-between"><span>5個完了ボーナス（1日1回）</span><span className="text-yellow-500">+10</span></div>
+                  <div className="flex justify-between"><span>10個完了ボーナス（1日1回）</span><span className="text-yellow-500">+20</span></div>
+                  <div className="flex justify-between"><span>デイリーコンプリート（1日1回）</span><span className="text-yellow-500">+20</span></div>
+                  <div className="flex justify-between"><span>被りカード還元</span><span className="text-yellow-500">+{DUPLICATE_REFUND}</span></div>
                 </div>
               </div>
-
-              {/* 全{CARD_MASTER.length}種類 */}
-              <p className="text-center text-xs text-zinc-600">全{CARD_MASTER.length}種類のカードが存在します</p>
             </div>
           )}
         </div>
+      )}
+
+      {showSeasonModal && (
+        <SeasonCreationModal
+          onClose={() => !isCreatingSeason && setShowSeasonModal(false)}
+          onConfirm={handleCreateSeason}
+          isCreating={isCreatingSeason}
+        />
       )}
     </div>
   );
