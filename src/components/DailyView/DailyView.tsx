@@ -11,9 +11,13 @@ interface Props {
   onDateChange: (date: string) => void;
   onSetStatus: (date: string, taskId: string, status: TaskStatus) => void;
   getStatus: (date: string, taskId: string) => TaskStatus;
+  coins: number;
+  lastCoinGain: number;
+  gainKey: number;
+  onNavigateGacha: () => void;
 }
 
-export default function DailyView({ tasks, history, currentDate, onDateChange, onSetStatus, getStatus }: Props) {
+export default function DailyView({ tasks, history, currentDate, onDateChange, onSetStatus, getStatus, coins, lastCoinGain, gainKey, onNavigateGacha }: Props) {
   const goNext = useCallback(() => {
     const next = addDays(currentDate, 1);
     if (!isFuture(next) || next === new Date().toISOString().slice(0, 10)) {
@@ -64,7 +68,7 @@ export default function DailyView({ tasks, history, currentDate, onDateChange, o
     >
       {/* ヘッダー */}
       <div className="px-4 pt-4 pb-3 border-b border-zinc-800">
-        <div className="flex items-center justify-between mb-2">
+        <div className="relative flex items-center justify-between mb-2">
           <button
             onClick={goPrev}
             className="p-2 rounded-full hover:bg-zinc-800 active:bg-zinc-700 transition-colors text-zinc-400"
@@ -73,22 +77,44 @@ export default function DailyView({ tasks, history, currentDate, onDateChange, o
             ‹
           </button>
 
-          <div className="text-center">
+          <div className="absolute left-1/2 -translate-x-1/2 text-center pointer-events-none">
             <div className="font-semibold text-base text-zinc-100">{formatDisplayDate(currentDate)}</div>
             {isToday(currentDate) && (
               <div className="text-xs text-emerald-500 mt-0.5">今日</div>
             )}
           </div>
 
-          <button
-            onClick={goNext}
-            className={`p-2 rounded-full transition-colors text-zinc-400 ${
-              isCurrentFuture ? 'opacity-30 pointer-events-none' : 'hover:bg-zinc-800 active:bg-zinc-700'
-            }`}
-            aria-label="次の日"
-          >
-            ›
-          </button>
+          <div className="flex items-center gap-1.5">
+            {/* コイン表示ボタン */}
+            <div className="relative">
+              <button
+                onClick={onNavigateGacha}
+                className="flex items-center gap-1 bg-zinc-800 hover:bg-zinc-700 active:bg-zinc-600 rounded-full px-2.5 py-1 transition-colors"
+                aria-label="ガチャへ"
+              >
+                <span className="text-sm leading-none">🪙</span>
+                <span className="text-xs font-mono font-bold text-yellow-400">{coins}</span>
+              </button>
+              {/* コイン獲得アニメーション */}
+              {lastCoinGain > 0 && (
+                <span
+                  key={gainKey}
+                  className="coin-float absolute -top-5 left-1/2 -translate-x-1/2 text-xs font-bold text-yellow-400 whitespace-nowrap pointer-events-none"
+                >
+                  +{lastCoinGain}🪙
+                </span>
+              )}
+            </div>
+            <button
+              onClick={goNext}
+              className={`p-2 rounded-full transition-colors text-zinc-400 ${
+                isCurrentFuture ? 'opacity-30 pointer-events-none' : 'hover:bg-zinc-800 active:bg-zinc-700'
+              }`}
+              aria-label="次の日"
+            >
+              ›
+            </button>
+          </div>
         </div>
 
         {/* 進捗バー */}

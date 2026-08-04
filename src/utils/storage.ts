@@ -1,6 +1,32 @@
-import type { AppData, Task, HistoryEntry } from '../types';
+import type { AppData, Task, HistoryEntry, GachaData } from '../types';
 
 const STORAGE_KEY = 'habit-tracker-data';
+const GACHA_STORAGE_KEY = 'habit-tracker-gacha';
+
+const defaultGachaData: GachaData = {
+  coins: 0,
+  ownedCards: [],
+  dailyBonuses: [],
+};
+
+export function loadGachaData(): GachaData {
+  try {
+    const raw = localStorage.getItem(GACHA_STORAGE_KEY);
+    if (!raw) return defaultGachaData;
+    const parsed = JSON.parse(raw) as GachaData;
+    return {
+      coins: typeof parsed.coins === 'number' ? parsed.coins : 0,
+      ownedCards: Array.isArray(parsed.ownedCards) ? parsed.ownedCards : [],
+      dailyBonuses: Array.isArray(parsed.dailyBonuses) ? parsed.dailyBonuses : [],
+    };
+  } catch {
+    return defaultGachaData;
+  }
+}
+
+export function saveGachaData(data: GachaData): void {
+  localStorage.setItem(GACHA_STORAGE_KEY, JSON.stringify(data));
+}
 
 const defaultData: AppData = {
   tasks: [],
@@ -60,7 +86,7 @@ export function generateId(): string {
   return `task_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
 }
 
-export function createTask(title: string, frequencyType: Task['frequencyType'], frequencyCount: number, order: number, icon?: string, weekDays?: number[]): Task {
+export function createTask(title: string, frequencyType: Task['frequencyType'], frequencyCount: number, order: number, icon?: string, weekDays?: number[], difficulty?: Task['difficulty']): Task {
   return {
     id: generateId(),
     title,
@@ -68,6 +94,7 @@ export function createTask(title: string, frequencyType: Task['frequencyType'], 
     frequencyType,
     frequencyCount,
     weekDays,
+    difficulty,
     order,
     createdAt: new Date().toISOString(),
   };

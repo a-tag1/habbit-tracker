@@ -9,6 +9,7 @@ export interface Task {
   frequencyType: FrequencyType;
   frequencyCount: number;
   weekDays?: number[];  // weekly 時の対象曜日: 0=日, 1=月, ..., 6=土
+  difficulty?: 'normal' | 'hard';
   order: number;
   createdAt: string;
 }
@@ -24,6 +25,42 @@ export interface AppData {
   history: HistoryEntry[];
 }
 
-export type AppView = 'daily' | 'statistics' | 'settings' | 'tasks';
+export type AppView = 'daily' | 'statistics' | 'settings' | 'tasks' | 'gacha';
 
 export type ThemeKey = 'black' | 'white' | 'blue';
+
+// ─── Gacha / Coin ────────────────────────────────────────
+
+export type Rarity = 'N' | 'R' | 'SR' | 'SSR';
+
+export interface CardMaster {
+  id: string;
+  name: string;
+  rarity: Rarity;
+  prompt: string;
+  cheerMessage: string;
+}
+
+export interface OwnedCard {
+  userCardId: string;
+  cardMasterId: string;
+  name: string;
+  rarity: Rarity;
+  seed: number;
+  imageUrl: string;
+  cheerMessage: string;
+  obtainedAt: string;
+}
+
+export interface DailyBonus {
+  date: string;
+  bonus5: boolean;
+  bonus10: boolean;
+  complete: boolean;
+}
+
+export interface GachaData {
+  coins: number;
+  ownedCards: OwnedCard[];
+  dailyBonuses: DailyBonus[];
+}

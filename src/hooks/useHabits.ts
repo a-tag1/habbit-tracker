@@ -10,13 +10,13 @@ export function useHabits() {
     saveData(next);
   }, []);
 
-  const addTask = useCallback((title: string, frequencyType: Task['frequencyType'], frequencyCount: number, icon?: string, weekDays?: number[]) => {
+  const addTask = useCallback((title: string, frequencyType: Task['frequencyType'], frequencyCount: number, icon?: string, weekDays?: number[], difficulty?: Task['difficulty']) => {
     const order = data.tasks.length;
-    const task = createTask(title, frequencyType, frequencyCount, order, icon, weekDays);
+    const task = createTask(title, frequencyType, frequencyCount, order, icon, weekDays, difficulty);
     persist({ ...data, tasks: [...data.tasks, task] });
   }, [data, persist]);
 
-  const updateTask = useCallback((id: string, updates: Partial<Pick<Task, 'title' | 'frequencyType' | 'frequencyCount' | 'icon' | 'weekDays'>>) => {
+  const updateTask = useCallback((id: string, updates: Partial<Pick<Task, 'title' | 'frequencyType' | 'frequencyCount' | 'icon' | 'weekDays' | 'difficulty'>>) => {
     const tasks = data.tasks.map(t => t.id === id ? { ...t, ...updates } : t);
     persist({ ...data, tasks });
   }, [data, persist]);

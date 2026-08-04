@@ -6,8 +6,8 @@ import { TASK_ICON_MAP } from '../../utils/taskIcons';
 
 interface Props {
   tasks: Task[];
-  onAdd: (title: string, frequencyType: Task['frequencyType'], frequencyCount: number, icon?: string, weekDays?: number[]) => void;
-  onUpdate: (id: string, updates: Partial<Pick<Task, 'title' | 'frequencyType' | 'frequencyCount' | 'icon' | 'weekDays'>>) => void;
+  onAdd: (title: string, frequencyType: Task['frequencyType'], frequencyCount: number, icon?: string, weekDays?: number[], difficulty?: Task['difficulty']) => void;
+  onUpdate: (id: string, updates: Partial<Pick<Task, 'title' | 'frequencyType' | 'frequencyCount' | 'icon' | 'weekDays' | 'difficulty'>>) => void;
   onDelete: (id: string) => void;
   onReorder: (tasks: Task[]) => void;
 }
@@ -26,11 +26,11 @@ export default function TaskList({ tasks, onAdd, onUpdate, onDelete, onReorder }
     onReorder(reordered);
   };
 
-  const handleSave = (title: string, frequencyType: Task['frequencyType'], frequencyCount: number, icon?: string, weekDays?: number[]) => {
+  const handleSave = (title: string, frequencyType: Task['frequencyType'], frequencyCount: number, icon?: string, weekDays?: number[], difficulty?: Task['difficulty']) => {
     if (editingTask) {
-      onUpdate(editingTask.id, { title, frequencyType, frequencyCount, icon, weekDays });
+      onUpdate(editingTask.id, { title, frequencyType, frequencyCount, icon, weekDays, difficulty });
     } else {
-      onAdd(title, frequencyType, frequencyCount, icon, weekDays);
+      onAdd(title, frequencyType, frequencyCount, icon, weekDays, difficulty);
     }
     setEditingTask(null);
   };

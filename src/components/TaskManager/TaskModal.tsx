@@ -3,10 +3,11 @@ import type { Task } from '../../types';
 import { TASK_ICON_OPTIONS, TASK_ICON_MAP } from '../../utils/taskIcons';
 
 type FrequencyType = Task['frequencyType'];
+type Difficulty = Task['difficulty'];
 
 interface Props {
   task?: Task | null;
-  onSave: (title: string, frequencyType: FrequencyType, frequencyCount: number, icon?: string, weekDays?: number[]) => void;
+  onSave: (title: string, frequencyType: FrequencyType, frequencyCount: number, icon?: string, weekDays?: number[], difficulty?: Difficulty) => void;
   onClose: () => void;
 }
 
@@ -24,6 +25,7 @@ export default function TaskModal({ task, onSave, onClose }: Props) {
   const [frequencyCount, setFrequencyCount] = useState(task?.frequencyCount ?? 1);
   const [icon, setIcon] = useState<string | undefined>(task?.icon);
   const [weekDays, setWeekDays] = useState<number[]>(task?.weekDays ?? []);
+  const [difficulty, setDifficulty] = useState<Difficulty>(task?.difficulty ?? 'normal');
 
   const toggleWeekDay = (day: number) => {
     setWeekDays(prev =>
@@ -38,6 +40,7 @@ export default function TaskModal({ task, onSave, onClose }: Props) {
       setFrequencyCount(task.frequencyCount);
       setIcon(task.icon);
       setWeekDays(task.weekDays ?? []);
+      setDifficulty(task.difficulty ?? 'normal');
     }
   }, [task]);
 
@@ -46,7 +49,7 @@ export default function TaskModal({ task, onSave, onClose }: Props) {
     if (!trimmed) return;
     if (frequencyType === 'weekly' && weekDays.length === 0) return;
     const effectiveCount = frequencyType === 'weekly' ? weekDays.length : frequencyCount;
-    onSave(trimmed, frequencyType, effectiveCount, icon, frequencyType === 'weekly' ? weekDays : undefined);
+    onSave(trimmed, frequencyType, effectiveCount, icon, frequencyType === 'weekly' ? weekDays : undefined, difficulty);
     onClose();
   };
 
@@ -165,6 +168,31 @@ export default function TaskModal({ task, onSave, onClose }: Props) {
             </div>
           </div>
         )}
+
+        {/* 難易度設定 */}
+        <label className="block text-xs text-zinc-400 mb-2 font-medium">難易度</label>
+        <div className="flex gap-2 mb-6">
+          <button
+            onClick={() => setDifficulty('normal')}
+            className={`flex-1 py-2.5 rounded-xl border text-xs font-medium transition-all ${
+              difficulty !== 'hard'
+                ? 'bg-emerald-600 text-white border-emerald-600'
+                : 'bg-zinc-800 text-zinc-300 border-zinc-700'
+            }`}
+          >
+            ノーマル（+5🪙）
+          </button>
+          <button
+            onClick={() => setDifficulty('hard')}
+            className={`flex-1 py-2.5 rounded-xl border text-xs font-medium transition-all ${
+              difficulty === 'hard'
+                ? 'bg-orange-600 text-white border-orange-600'
+                : 'bg-zinc-800 text-zinc-300 border-zinc-700'
+            }`}
+          >
+            ハード ★（+10🪙）
+          </button>
+        </div>
 
         <button
           onClick={handleSave}
