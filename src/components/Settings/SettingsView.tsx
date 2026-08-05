@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import type { AppData } from '../../types';
+import type { AppData, ImageSettings } from '../../types';
 import type { ThemeKey } from '../../types';
 import { exportData, importData } from '../../utils/storage';
 
@@ -8,6 +8,8 @@ interface Props {
   onImport: (data: AppData) => void;
   theme: ThemeKey;
   onThemeChange: (theme: ThemeKey) => void;
+  imageSettings: ImageSettings;
+  onImageSettingsChange: (s: ImageSettings) => void;
 }
 
 const THEME_OPTIONS: {
@@ -24,7 +26,7 @@ const THEME_OPTIONS: {
   { key: 'blue',  label: 'ブルー',   bg: '#0f172a', fg: '#e2e8f0', card: '#1e293b', border: '#334155', accent: '#3b82f6' },
 ];
 
-export default function SettingsView({ data, onImport, theme, onThemeChange }: Props) {
+export default function SettingsView({ data, onImport, theme, onThemeChange, imageSettings, onImageSettingsChange }: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [importStatus, setImportStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [errorMsg, setErrorMsg] = useState('');
@@ -107,6 +109,64 @@ export default function SettingsView({ data, onImport, theme, onThemeChange }: P
                 </button>
               );
             })}
+          </div>
+        </section>
+
+        {/* 画像生成設定 */}
+        <section>
+          <h2 className="text-xs text-zinc-500 font-medium uppercase tracking-wider mb-3">画像生成</h2>
+          <div className="border border-zinc-800 bg-zinc-900 rounded-2xl p-4 flex flex-col gap-3">
+            <div className="flex gap-2">
+              {(['pollinations', 'huggingface'] as const).map(p => (
+                <button
+                  key={p}
+                  onClick={() => onImageSettingsChange({ ...imageSettings, provider: p })}
+                  className={`flex-1 py-2.5 rounded-xl text-xs font-medium transition-all border ${
+                    imageSettings.provider === p
+                      ? 'bg-emerald-700/30 border-emerald-600 text-emerald-300'
+                      : 'bg-zinc-800 border-zinc-700 text-zinc-500'
+                  }`}
+                >
+                  {p === 'pollinations' ? 'Pollinations.ai' : 'Hugging Face'}
+                </button>
+              ))}
+            </div>
+            {imageSettings.provider === 'huggingface' && (
+              <>
+                <div>
+                  <p className="text-xs text-zinc-400 mb-1.5">APIトークン</p>
+                  <input
+                    type="password"
+                    value={imageSettings.hfToken}
+                    onChange={e => onImageSettingsChange({ ...imageSettings, hfToken: e.target.value })}
+                    placeholder="hf_..."
+                    autoComplete="off"
+                    className="w-full bg-zinc-800 border border-zinc-700 text-zinc-100 placeholder-zinc-600 rounded-xl px-3 py-2.5 text-xs outline-none focus:border-emerald-500 transition-colors font-mono"
+                  />
+                  <p className="text-[10px] text-zinc-600 mt-1">
+                    huggingface.co/settings/tokens でトークンを取得してください
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-zinc-400 mb-1.5">モデル</p>
+                  <select
+                    value={imageSettings.hfModel}
+                    onChange={e => onImageSettingsChange({ ...imageSettings, hfModel: e.target.value })}
+                    className="w-full bg-zinc-800 border border-zinc-700 text-zinc-100 rounded-xl px-3 py-2.5 text-xs outline-none focus:border-emerald-500"
+                  >
+                    <option value="stabilityai/stable-diffusion-3-medium-diffusers">SD3 Medium（推奨）</option>
+                    <option value="black-forest-labs/FLUX.1-schnell">FLUX.1-schnell</option>
+                    <option value="black-forest-labs/FLUX.1-dev">FLUX.1-dev</option>
+                  </select>
+                </div>
+                <p className="text-[10px] text-zinc-500">FLUX → nscale 　SD3 → hf-inference</p>
+              </>
+            )}
+            <p className="text-[10px] text-zinc-600">
+              {imageSettings.provider === 'pollinations'
+                ? 'Pollinations.aiで無料生成（APIキー不要）'
+                : 'Hugging Faceで生成（トークン必要・失敗時はpollinationsにフォールバック）'}
+            </p>
           </div>
         </section>
 

@@ -1,6 +1,6 @@
 ﻿import { useState, useEffect, useRef, useMemo } from 'react';
 import type { OwnedCard, Rarity, CustomSeason, CardMaster } from '../../types';
-import { drawCards, GACHA_COST_SINGLE, GACHA_COST_MULTI, DUPLICATE_REFUND, type GachaDraw, type DrawContext } from '../../utils/gachaUtils';
+import { drawCards, GACHA_COST_SINGLE, GACHA_COST_MULTI, DUPLICATE_REFUND, type GachaDraw, type DrawContext, type ImageConfig } from '../../utils/gachaUtils';
 import { CARD_MASTER } from '../../utils/cardMaster';
 import CollectionView from './CollectionView';
 
@@ -18,6 +18,9 @@ interface Props {
   onReplaceCard: (cardMasterId: string, newCard: OwnedCard) => void;
   onCreateSeason: (theme: string) => void;
   onSwitchSeason: (id: string | null) => void;
+  imageProvider: 'pollinations' | 'huggingface';
+  hfToken: string;
+  hfModel: string;
 }
 
 const RARITY_STYLE: Record<Rarity, { border: string; text: string; glow: string; label: string }> = {
@@ -150,6 +153,7 @@ function SeasonCreationModal({
 export default function GachaView({
   coins, ownedCards, customSeasons, activeSeasonId,
   onSpendCoins, onAddCards, onAddCoins, onReplaceCard, onCreateSeason, onSwitchSeason,
+  imageProvider, hfToken, hfModel,
 }: Props) {
   const [subTab, setSubTab] = useState<SubTab>('gacha');
   const [phase, setPhase] = useState<GachaPhase>('idle');
@@ -203,18 +207,31 @@ export default function GachaView({
     if (!onSpendCoins(cost)) return;
     setPullCount(count);
     setPhase('pulling');
-    timerRef.current = setTimeout(() => {
-      const ctx: DrawContext | undefined = activeSeasonId !== null
-        ? { cardPool: currentSeasonCardsByRarity, seasonId: activeSeasonId }
-        : undefined;
-      const results = drawCards(count, ownedMasterIds, ctx);
+
+    const ctx: DrawContext | undefined = activeSeasonId !== null
+      ? { cardPool: currentSeasonCardsByRarity, seasonId: activeSeasonId }
+      : undefined;
+    const imgConfig: ImageConfig = {
+      provider: imageProvider,
+      hfToken: hfToken || undefined,
+      hfModel,
+    };
+
+    Promise.all([
+      drawCards(count, ownedMasterIds, ctx, imgConfig),
+      new Promise<void>(r => { timerRef.current = setTimeout(r, 3000); }),
+    ]).then(([results]) => {
       setDraws(results);
       setPhase('reveal');
       const refund = results.reduce((s, d) => s + d.coinRefund, 0);
       if (refund > 0) onAddCoins(refund);
       const newCards = results.filter(d => !d.isDuplicate).map(d => d.card);
       if (newCards.length > 0) onAddCards(newCards);
-    }, 3000);
+    }).catch(() => {
+      // 失敗時はコインを返金しidleに戻る
+      onAddCoins(cost);
+      setPhase('idle');
+    });
   };
 
   const totalRefund = draws.reduce((s, d) => s + d.coinRefund, 0);

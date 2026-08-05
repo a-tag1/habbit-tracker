@@ -74,3 +74,11 @@ export interface GachaData {
   customSeasons: CustomSeason[];
   activeSeasonId: string | null;
 }
+
+export type ImageProvider = 'pollinations' | 'huggingface';
+
+export interface ImageSettings {
+  provider: ImageProvider;
+  hfToken: string;
+  hfModel: string;
+}

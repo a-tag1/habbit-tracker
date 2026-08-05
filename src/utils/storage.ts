@@ -1,7 +1,38 @@
-import type { AppData, Task, HistoryEntry, GachaData } from '../types';
+import type { AppData, Task, HistoryEntry, GachaData, ImageSettings } from '../types';
 
 const STORAGE_KEY = 'habit-tracker-data';
 const GACHA_STORAGE_KEY = 'habit-tracker-gacha';
+const IMAGE_SETTINGS_KEY = 'habit-tracker-image-settings';
+
+const defaultImageSettings: ImageSettings = {
+  provider: 'pollinations',
+  hfToken: '',
+  hfModel: 'stabilityai/stable-diffusion-3-medium-diffusers',
+};
+
+export function loadImageSettings(): ImageSettings {
+  try {
+    const raw = localStorage.getItem(IMAGE_SETTINGS_KEY);
+    if (!raw) return defaultImageSettings;
+    const parsed = JSON.parse(raw) as Partial<ImageSettings>;
+    // FLUX.1-schnell は hf-inference で廃止済みのため SD3 へ移行
+    const rawModel = typeof parsed.hfModel === 'string' ? parsed.hfModel : 'stabilityai/stable-diffusion-3-medium-diffusers';
+    const hfModel = rawModel.startsWith('black-forest-labs/FLUX')
+      ? 'stabilityai/stable-diffusion-3-medium-diffusers'
+      : rawModel;
+    return {
+      provider: parsed.provider === 'huggingface' ? 'huggingface' : 'pollinations',
+      hfToken: typeof parsed.hfToken === 'string' ? parsed.hfToken : '',
+      hfModel,
+    };
+  } catch {
+    return defaultImageSettings;
+  }
+}
+
+export function saveImageSettings(settings: ImageSettings): void {
+  localStorage.setItem(IMAGE_SETTINGS_KEY, JSON.stringify(settings));
+}
 
 const defaultGachaData: GachaData = {
   coins: 0,

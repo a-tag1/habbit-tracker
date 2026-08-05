@@ -5,7 +5,8 @@ import { useTheme } from './hooks/useTheme'
 import { useCoin } from './hooks/useCoin'
 import { toDateString } from './utils/dateUtils'
 import { getDayOfWeek } from './utils/dateUtils'
-import type { AppView, TaskStatus } from './types'
+import type { AppView, TaskStatus, ImageSettings } from './types'
+import { loadImageSettings, saveImageSettings } from './utils/storage'
 import DailyView from './components/DailyView/DailyView'
 import TaskList from './components/TaskManager/TaskList'
 import StatisticsView from './components/Statistics/StatisticsView'
@@ -17,6 +18,11 @@ function App() {
   const [currentView, setCurrentView] = useState<AppView>('daily')
   const [currentDate, setCurrentDate] = useState(toDateString(new Date()))
   const { theme, setTheme } = useTheme()
+  const [imageSettings, setImageSettings] = useState<ImageSettings>(() => loadImageSettings())
+  const handleImageSettingsChange = useCallback((s: ImageSettings) => {
+    setImageSettings(s)
+    saveImageSettings(s)
+  }, [])
   const {
     tasks,
     history,
@@ -102,6 +108,8 @@ function App() {
             onImport={importAppData}
             theme={theme}
             onThemeChange={setTheme}
+            imageSettings={imageSettings}
+            onImageSettingsChange={handleImageSettingsChange}
           />
         )}
         {currentView === 'gacha' && (
@@ -116,6 +124,9 @@ function App() {
             onReplaceCard={replaceOwnedCard}
             onCreateSeason={createSeason}
             onSwitchSeason={switchSeason}
+            imageProvider={imageSettings.provider}
+            hfToken={imageSettings.hfToken}
+            hfModel={imageSettings.hfModel}
           />
         )}
       </main>
