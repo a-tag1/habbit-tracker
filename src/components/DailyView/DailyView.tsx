@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import type { Task, TaskStatus, HistoryEntry } from '../../types';
 import { formatDisplayDate, addDays, isFuture, isToday, getDayOfWeek } from '../../utils/dateUtils';
 import { useSwipe } from '../../hooks/useSwipe';
@@ -18,18 +18,23 @@ interface Props {
 }
 
 export default function DailyView({ tasks, history, currentDate, onDateChange, onSetStatus, getStatus, coins, lastCoinGain, gainKey, onNavigateGacha }: Props) {
+  const [slideDir, setSlideDir] = useState<'left' | 'right'>('right');
+
   const goNext = useCallback(() => {
     const next = addDays(currentDate, 1);
     if (!isFuture(next) || next === new Date().toISOString().slice(0, 10)) {
+      setSlideDir('right');
       onDateChange(next);
     } else if (isToday(currentDate)) {
       // already today, allow going to tomorrow to log in advance? No per spec - don't allow future
     } else {
+      setSlideDir('right');
       onDateChange(next);
     }
   }, [currentDate, onDateChange]);
 
   const goPrev = useCallback(() => {
+    setSlideDir('left');
     onDateChange(addDays(currentDate, -1));
   }, [currentDate, onDateChange]);
 
@@ -132,26 +137,31 @@ export default function DailyView({ tasks, history, currentDate, onDateChange, o
       </div>
 
       {/* タスクリスト */}
-      <div className="flex-1 overflow-y-auto px-4 py-1 flex flex-col">
-        {tasks.length === 0 ? (
-          <div className="flex flex-col items-center justify-center flex-1 text-zinc-600 text-sm gap-2 py-20">
-            <span className="text-4xl">✦</span>
-            <p>タスクがまだありません</p>
-            <p className="text-xs">タスクメニューから追加してください</p>
-          </div>
-        ) : (
-          visibleTasks.map(task => (
-            <TaskItem
-              key={task.id}
-              task={task}
-              status={getStatus(currentDate, task.id)}
-              history={history}
-              dateStr={currentDate}
-              onComplete={handleComplete}
-              onSkip={handleSkip}
-            />
-          ))
-        )}
+      <div className="flex-1 overflow-y-auto overflow-x-hidden">
+        <div
+          key={currentDate}
+          className={`px-4 py-1 flex flex-col min-h-full ${slideDir === 'right' ? 'slide-from-right' : 'slide-from-left'}`}
+        >
+          {tasks.length === 0 ? (
+            <div className="flex flex-col items-center justify-center flex-1 text-zinc-600 text-sm gap-2 py-20">
+              <span className="text-4xl">✦</span>
+              <p>タスクがまだありません</p>
+              <p className="text-xs">タスクメニューから追加してください</p>
+            </div>
+          ) : (
+            visibleTasks.map(task => (
+              <TaskItem
+                key={task.id}
+                task={task}
+                status={getStatus(currentDate, task.id)}
+                history={history}
+                dateStr={currentDate}
+                onComplete={handleComplete}
+                onSkip={handleSkip}
+              />
+            ))
+          )}
+        </div>
       </div>
 
     </div>

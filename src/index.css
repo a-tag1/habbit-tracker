@@ -14,6 +14,21 @@ html, body, #root {
   overscroll-behavior: none;
 }
 
+/* ── 日付スライドアニメーション ─────────── */
+
+@keyframes slide-in-from-right {
+  from { transform: translateX(28%); opacity: 0; }
+  to   { transform: translateX(0);   opacity: 1; }
+}
+
+@keyframes slide-in-from-left {
+  from { transform: translateX(-28%); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+
+.slide-from-right { animation: slide-in-from-right 0.22s ease-out; }
+.slide-from-left  { animation: slide-in-from-left  0.22s ease-out; }
+
 /* ── タスク完了アニメーション ─────────── */
 
 @keyframes task-complete {
