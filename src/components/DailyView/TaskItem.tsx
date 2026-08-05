@@ -1,3 +1,5 @@
+import { useState, useEffect, useRef } from 'react';
+import { Check } from 'lucide-react';
 import type { Task, TaskStatus } from '../../types';
 import { getProgressCounter } from '../../utils/statistics';
 import type { HistoryEntry } from '../../types';
@@ -26,9 +28,20 @@ const STATUS_ICON: Record<TaskStatus, string> = {
 
 export default function TaskItem({ task, status, history, dateStr, onComplete, onSkip }: Props) {
   const progress = getProgressCounter(task, history, dateStr);
+  const prevStatus = useRef(status);
+  const [justCompleted, setJustCompleted] = useState(false);
+
+  useEffect(() => {
+    if (prevStatus.current !== 'completed' && status === 'completed') {
+      setJustCompleted(true);
+      const timer = setTimeout(() => setJustCompleted(false), 600);
+      return () => clearTimeout(timer);
+    }
+    prevStatus.current = status;
+  }, [status]);
 
   return (
-    <div className="flex items-center border-b border-zinc-800/60">
+    <div className={`flex items-center border-b border-zinc-800/60 ${justCompleted ? 'task-complete' : ''}`}>
       {/* 左エリア: 完了トグル */}
       <button
         onClick={() => onComplete(task)}
@@ -38,7 +51,11 @@ export default function TaskItem({ task, status, history, dateStr, onComplete, o
           const Icon = TASK_ICON_MAP[task.icon!];
           return Icon ? <Icon size={20} strokeWidth={1.5} className="shrink-0 opacity-70" /> : null;
         })()}
-        <span className="text-sm font-mono w-5 text-center shrink-0 opacity-70">{STATUS_ICON[status]}</span>
+        <span className="text-sm font-mono w-5 flex items-center justify-center shrink-0 opacity-70">
+          {status === 'completed'
+            ? <Check size={20} strokeWidth={3} />
+            : STATUS_ICON[status]}
+        </span>
         <span className="font-medium truncate text-sm">{task.title}</span>
         {progress && (
           <span className={`text-xs font-mono shrink-0 ml-auto ${
