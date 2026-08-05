@@ -66,6 +66,12 @@ export function useCoin() {
     persist({ ...prev, ownedCards: [...prev.ownedCards, ...cards] });
   }, [persist]);
 
+  const replaceOwnedCard = useCallback((cardMasterId: string, newCard: OwnedCard) => {
+    const prev = dataRef.current;
+    const updated = prev.ownedCards.map(c => c.cardMasterId === cardMasterId ? newCard : c);
+    persist({ ...prev, ownedCards: updated });
+  }, [persist]);
+
   const refundCoins = useCallback((amount: number) => {
     const prev = dataRef.current;
     persist({ ...prev, coins: prev.coins + amount });
@@ -95,6 +101,7 @@ export function useCoin() {
     spendCoins,
     refundCoins,
     addOwnedCards,
+    replaceOwnedCard,
     createSeason,
     switchSeason,
   };

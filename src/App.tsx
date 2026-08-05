@@ -40,6 +40,7 @@ function App() {
     spendCoins,
     refundCoins,
     addOwnedCards,
+    replaceOwnedCard,
     createSeason,
     switchSeason,
   } = useCoin()
@@ -112,6 +113,7 @@ function App() {
             onSpendCoins={spendCoins}
             onAddCards={addOwnedCards}
             onAddCoins={refundCoins}
+            onReplaceCard={replaceOwnedCard}
             onCreateSeason={createSeason}
             onSwitchSeason={switchSeason}
           />

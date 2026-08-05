@@ -15,6 +15,7 @@ interface Props {
   onSpendCoins: (amount: number) => boolean;
   onAddCards: (cards: OwnedCard[]) => void;
   onAddCoins: (amount: number) => void;
+  onReplaceCard: (cardMasterId: string, newCard: OwnedCard) => void;
   onCreateSeason: (theme: string) => void;
   onSwitchSeason: (id: string | null) => void;
 }
@@ -148,7 +149,7 @@ function SeasonCreationModal({
 
 export default function GachaView({
   coins, ownedCards, customSeasons, activeSeasonId,
-  onSpendCoins, onAddCards, onAddCoins, onCreateSeason, onSwitchSeason,
+  onSpendCoins, onAddCards, onAddCoins, onReplaceCard, onCreateSeason, onSwitchSeason,
 }: Props) {
   const [subTab, setSubTab] = useState<SubTab>('gacha');
   const [phase, setPhase] = useState<GachaPhase>('idle');
@@ -156,6 +157,7 @@ export default function GachaView({
   const [pullCount, setPullCount] = useState<1 | 10>(1);
   const [showSeasonModal, setShowSeasonModal] = useState(false);
   const [isCreatingSeason, setIsCreatingSeason] = useState(false);
+  const [overwriteSet, setOverwriteSet] = useState<Set<string>>(new Set());
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => () => { if (timerRef.current) clearTimeout(timerRef.current); }, []);
@@ -216,6 +218,10 @@ export default function GachaView({
   };
 
   const totalRefund = draws.reduce((s, d) => s + d.coinRefund, 0);
+  // 被り重複をcardMasterId単位で1件にまとめる
+  const uniqueDuplicateDraws = draws.filter(
+    (d, idx) => d.isDuplicate && draws.findIndex(x => x.card.cardMasterId === d.card.cardMasterId) === idx
+  );
 
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
@@ -266,9 +272,50 @@ export default function GachaView({
                     {totalRefund > 0 && <p className="text-xs text-yellow-400 text-center">被りにつき {totalRefund}🪙 還元されました</p>}
                   </div>
                 )}
+                {uniqueDuplicateDraws.length > 0 && (
+                  <div className="mt-4 rounded-xl border border-zinc-700 bg-zinc-900/50 p-3">
+                    <p className="text-[11px] text-zinc-500 mb-2 font-medium">被りカードのイラストを更新しますか？</p>
+                    {uniqueDuplicateDraws.map(draw => (
+                      <div key={draw.card.cardMasterId} className="flex items-center gap-2 py-1.5 border-b border-zinc-800/60 last:border-0">
+                        <span className={`text-[10px] font-bold shrink-0 ${RARITY_STYLE[draw.card.rarity].text}`}>
+                          {RARITY_STYLE[draw.card.rarity].label}
+                        </span>
+                        <span className="flex-1 text-xs text-zinc-300 truncate">{draw.card.name}</span>
+                        <button
+                          onClick={() => setOverwriteSet(prev => {
+                            const next = new Set(prev);
+                            if (next.has(draw.card.cardMasterId)) next.delete(draw.card.cardMasterId);
+                            else next.add(draw.card.cardMasterId);
+                            return next;
+                          })}
+                          className={`shrink-0 px-3 py-1 rounded-full text-[11px] font-medium transition-colors ${
+                            overwriteSet.has(draw.card.cardMasterId)
+                              ? 'bg-emerald-700 text-emerald-100'
+                              : 'bg-zinc-800 text-zinc-500'
+                          }`}
+                        >
+                          {overwriteSet.has(draw.card.cardMasterId) ? '✓ 上書き' : 'そのまま'}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
               <div className="px-4 py-4 border-t border-zinc-800 shrink-0">
-                <button onClick={() => { setPhase('idle'); setDraws([]); }} className="w-full py-3 rounded-xl bg-zinc-700 text-zinc-100 text-sm font-medium">戻る</button>
+                <button
+                  onClick={() => {
+                    overwriteSet.forEach(masterId => {
+                      const draw = draws.find(d => d.card.cardMasterId === masterId);
+                      if (draw) onReplaceCard(masterId, draw.card);
+                    });
+                    setOverwriteSet(new Set());
+                    setPhase('idle');
+                    setDraws([]);
+                  }}
+                  className="w-full py-3 rounded-xl bg-zinc-700 text-zinc-100 text-sm font-medium"
+                >
+                  {overwriteSet.size > 0 ? `上書きして戻る（${overwriteSet.size}枚）` : '戻る'}
+                </button>
               </div>
             </div>
           )}
