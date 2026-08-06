@@ -27,7 +27,7 @@ export interface AppData {
 
 export type AppView = 'daily' | 'statistics' | 'settings' | 'tasks' | 'gacha';
 
-export type ThemeKey = 'black' | 'white' | 'blue' | 'white-blue';
+export type ThemeKey = 'black' | 'white' | 'blue' | 'white-blue' | 'sonota-theme';
 
 // ─── Gacha / Coin ────────────────────────────────────────
 

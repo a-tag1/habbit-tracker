@@ -25,6 +25,7 @@ const THEME_OPTIONS: {
   { key: 'white',      label: 'ホワイト',       bg: '#ffffff', fg: '#18181b', card: '#f4f4f5', border: '#e4e4e7', accent: '#16a34a' },
   { key: 'blue',       label: 'ブルー',         bg: '#0f172a', fg: '#e2e8f0', card: '#1e293b', border: '#334155', accent: '#3b82f6' },
   { key: 'white-blue', label: 'ホワイト×ブルー', bg: '#ffffff', fg: '#18181b', card: '#eff6ff', border: '#dbeafe', accent: '#3b82f6' },
+  { key: 'sonota-theme', label: 'その他', bg: '#ffffff', fg: '#1616e2', card: '#effff1', border: '#dbfedd', accent: '#f63ba8' },
 ];
 
 export default function SettingsView({ data, onImport, theme, onThemeChange, imageSettings, onImageSettingsChange }: Props) {
