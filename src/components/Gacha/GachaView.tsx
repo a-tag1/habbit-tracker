@@ -1,6 +1,6 @@
 ﻿import { useState, useEffect, useRef, useMemo } from 'react';
 import type { OwnedCard, Rarity, CustomSeason, CardMaster } from '../../types';
-import { drawCards, GACHA_COST_SINGLE, GACHA_COST_MULTI, DUPLICATE_REFUND, type GachaDraw, type DrawContext, type ImageConfig } from '../../utils/gachaUtils';
+import { drawCards, drawFocused, GACHA_COST_SINGLE, GACHA_COST_FOCUSED, DUPLICATE_REFUND, type GachaDraw, type DrawContext, type ImageConfig } from '../../utils/gachaUtils';
 import { CARD_MASTER } from '../../utils/cardMaster';
 import CollectionView from './CollectionView';
 
@@ -158,7 +158,6 @@ export default function GachaView({
   const [subTab, setSubTab] = useState<SubTab>('gacha');
   const [phase, setPhase] = useState<GachaPhase>('idle');
   const [draws, setDraws] = useState<GachaDraw[]>([]);
-  const [pullCount, setPullCount] = useState<1 | 10>(1);
   const [showSeasonModal, setShowSeasonModal] = useState(false);
   const [isCreatingSeason, setIsCreatingSeason] = useState(false);
   const [overwriteSet, setOverwriteSet] = useState<Set<string>>(new Set());
@@ -202,10 +201,9 @@ export default function GachaView({
     }, 1200);
   };
 
-  const executePull = (count: 1 | 10) => {
-    const cost = count === 1 ? GACHA_COST_SINGLE : GACHA_COST_MULTI;
+  const executePull = (mode: 'single' | 'focused') => {
+    const cost = mode === 'single' ? GACHA_COST_SINGLE : GACHA_COST_FOCUSED;
     if (!onSpendCoins(cost)) return;
-    setPullCount(count);
     setPhase('pulling');
 
     const ctx: DrawContext | undefined = activeSeasonId !== null
@@ -218,7 +216,7 @@ export default function GachaView({
     };
 
     Promise.all([
-      drawCards(count, ownedMasterIds, ctx, imgConfig),
+      mode === 'single' ? drawCards(ownedMasterIds, ctx, imgConfig) : drawFocused(ownedMasterIds, ctx, imgConfig),
       new Promise<void>(r => { timerRef.current = setTimeout(r, 3000); }),
     ]).then(([results]) => {
       setDraws(results);
@@ -273,20 +271,13 @@ export default function GachaView({
           {phase === 'reveal' && (
             <div className="flex flex-col flex-1 overflow-hidden">
               <div className="flex-1 overflow-y-auto px-4 py-4">
-                {pullCount === 1 && draws[0] ? (
+                {draws[0] && (
                   <div className="flex flex-col items-center gap-4">
                     <div className="w-48"><ResultCard draw={draws[0]} index={0} /></div>
                     <div className={`px-4 py-3 rounded-xl bg-zinc-800 border ${RARITY_STYLE[draws[0].card.rarity].border} max-w-xs w-full`}>
                       <p className="text-xs text-zinc-300 text-center leading-relaxed">{draws[0].card.cheerMessage}</p>
                     </div>
                     {totalRefund > 0 && <p className="text-xs text-yellow-400">被りにつき {totalRefund}🪙 還元されました</p>}
-                  </div>
-                ) : (
-                  <div className="flex flex-col gap-3">
-                    <div className="grid grid-cols-3 gap-2">
-                      {draws.map((draw, i) => <ResultCard key={draw.card.userCardId} draw={draw} index={i} />)}
-                    </div>
-                    {totalRefund > 0 && <p className="text-xs text-yellow-400 text-center">被りにつき {totalRefund}🪙 還元されました</p>}
                   </div>
                 )}
                 {uniqueDuplicateDraws.length > 0 && (
@@ -424,17 +415,17 @@ export default function GachaView({
                   {(['SSR', 'SR', 'R', 'N'] as const).map(r => (
                     <div key={r}>
                       <div className={`text-xs font-bold ${RARITY_STYLE[r].text}`}>{r}</div>
-                      <div className="text-xs text-zinc-500">{r === 'SSR' ? '3%' : r === 'SR' ? '12%' : r === 'R' ? '25%' : '60%'}</div>
+                      <div className="text-xs text-zinc-500">{r === 'SSR' ? '2%' : r === 'SR' ? '10%' : r === 'R' ? '28%' : '60%'}</div>
                     </div>
                   ))}
                 </div>
-                <p className="text-[10px] text-zinc-600 mt-2 text-center">10連は SR以上 1枚確定</p>
+                <p className="text-[10px] text-zinc-600 mt-2 text-center">🎯未取得優先：全レアリティ横断で未取得から約85%の確率で抽選</p>
               </div>
 
               {/* ガチャボタン */}
               <div className="flex flex-col gap-3">
                 <button
-                  onClick={() => executePull(1)}
+                  onClick={() => executePull('single')}
                   disabled={coins < GACHA_COST_SINGLE}
                   className="w-full py-4 rounded-xl bg-gradient-to-r from-purple-700 to-indigo-700 text-white font-semibold text-sm disabled:opacity-40 active:scale-95 transition-transform"
                 >
@@ -442,12 +433,12 @@ export default function GachaView({
                   <div className="text-xs font-normal opacity-80 mt-0.5">🪙 {GACHA_COST_SINGLE} コイン</div>
                 </button>
                 <button
-                  onClick={() => executePull(10)}
-                  disabled={coins < GACHA_COST_MULTI}
-                  className="w-full py-4 rounded-xl bg-gradient-to-r from-yellow-600 to-orange-600 text-white font-semibold text-sm disabled:opacity-40 active:scale-95 transition-transform"
+                  onClick={() => executePull('focused')}
+                  disabled={coins < GACHA_COST_FOCUSED}
+                  className="w-full py-4 rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 text-white font-semibold text-sm disabled:opacity-40 active:scale-95 transition-transform"
                 >
-                  <div>10連引く <span className="text-xs font-normal">（SR以上確定）</span></div>
-                  <div className="text-xs font-normal opacity-80 mt-0.5">🪙 {GACHA_COST_MULTI} コイン <span className="opacity-70">（10%割引）</span></div>
+                  <div>🎯 未取得優先ガチャ</div>
+                  <div className="text-xs font-normal opacity-80 mt-0.5">🪙 {GACHA_COST_FOCUSED} コイン</div>
                 </button>
               </div>
 

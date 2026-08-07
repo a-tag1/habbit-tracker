@@ -11,7 +11,7 @@ const RARITY_WEIGHTS: { rarity: Rarity; weight: number }[] = [
 const TOTAL_WEIGHT = RARITY_WEIGHTS.reduce((s, r) => s + r.weight, 0);
 
 export const GACHA_COST_SINGLE = 50;
-export const GACHA_COST_MULTI = 450;
+export const GACHA_COST_FOCUSED = 200;
 export const DUPLICATE_REFUND = 25;
 
 export interface DrawContext {
@@ -26,12 +26,6 @@ function pickRarity(): Rarity {
     if (rand <= 0) return rarity;
   }
   return 'N';
-}
-
-// For 10-pull, guarantee at least one SR+
-function pickRarityGuaranteed(): Rarity {
-  const rand = Math.random() * (RARITY_WEIGHTS[2].weight + RARITY_WEIGHTS[3].weight);
-  return rand < RARITY_WEIGHTS[2].weight ? 'SR' : 'SSR';
 }
 
 export function buildImageUrl(prompt: string, seed: number): string {
@@ -116,19 +110,45 @@ async function buildDraw(base: ReturnType<typeof drawSingle>, imageConfig?: Imag
   return { card, isDuplicate, coinRefund };
 }
 
-export async function drawCards(count: 1 | 10, ownedMasterIds: Set<string>, ctx?: DrawContext, imageConfig?: ImageConfig): Promise<GachaDraw[]> {
-  if (count === 1) {
-    return [await buildDraw(drawSingle(ownedMasterIds, undefined, ctx), imageConfig)];
+export async function drawCards(ownedMasterIds: Set<string>, ctx?: DrawContext, imageConfig?: ImageConfig): Promise<GachaDraw[]> {
+  return [await buildDraw(drawSingle(ownedMasterIds, undefined, ctx), imageConfig)];
+}
+
+const FOCUSED_UNOWNED_RATE = 0.85;
+
+// 全レアリティ横断で未取得カードを高確率で優先抽選
+export async function drawFocused(ownedMasterIds: Set<string>, ctx?: DrawContext, imageConfig?: ImageConfig): Promise<GachaDraw[]> {
+  const unownedByRarity = (['N', 'R', 'SR', 'SSR'] as Rarity[]).reduce((acc, r) => {
+    const pool = ctx ? ctx.cardPool[r] : CARDS_BY_RARITY[r];
+    acc[r] = pool.filter(c => !ownedMasterIds.has(c.id));
+    return acc;
+  }, {} as Record<Rarity, typeof CARDS_BY_RARITY['N']>);
+
+  const hasAnyUnowned = (Object.values(unownedByRarity) as (typeof CARDS_BY_RARITY['N'])[]).some(p => p.length > 0);
+
+  let master: typeof CARDS_BY_RARITY['N'][number];
+
+  if (hasAnyUnowned && Math.random() < FOCUSED_UNOWNED_RATE) {
+    const available = RARITY_WEIGHTS.filter(({ rarity }) => unownedByRarity[rarity].length > 0);
+    const totalWeight = available.reduce((s, { weight }) => s + weight, 0);
+    let rand = Math.random() * totalWeight;
+    let selectedRarity: Rarity = available[available.length - 1].rarity;
+    for (const { rarity, weight } of available) {
+      rand -= weight;
+      if (rand <= 0) { selectedRarity = rarity; break; }
+    }
+    const pool = unownedByRarity[selectedRarity];
+    master = pool[Math.floor(Math.random() * pool.length)];
   } else {
-    // レアリティを先に確定（同期）してから画像生成を並列実行
-    let hasHighRarity = false;
-    const bases = Array.from({ length: 9 }, () => {
-      const b = drawSingle(ownedMasterIds, undefined, ctx);
-      if (b.master.rarity === 'SR' || b.master.rarity === 'SSR') hasHighRarity = true;
-      return b;
-    });
-    bases.push(drawSingle(ownedMasterIds, hasHighRarity ? undefined : pickRarityGuaranteed(), ctx));
-    return Promise.all(bases.map(b => buildDraw(b, imageConfig)));
+    const r = pickRarity();
+    const pool = ctx ? ctx.cardPool[r] : CARDS_BY_RARITY[r];
+    const safePool = pool.length > 0 ? pool : (ctx ? ctx.cardPool['N'] : CARDS_BY_RARITY['N']);
+    master = safePool[Math.floor(Math.random() * safePool.length)];
   }
+
+  const seed = Math.floor(Math.random() * 1000000);
+  const isDuplicate = ownedMasterIds.has(master.id);
+  const base = { master, seed, isDuplicate, coinRefund: isDuplicate ? DUPLICATE_REFUND : 0, seasonId: ctx?.seasonId };
+  return [await buildDraw(base, imageConfig)];
 }
 
