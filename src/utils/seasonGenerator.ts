@@ -1,17 +1,22 @@
 import type { CardMaster, Rarity } from '../types';
 
 const ARCHETYPES: { rarity: Rarity; nameTemplate: string; promptDesc: string; cheerTemplate: string }[] = [
-  // SSR (2)
+  // SSR (5)
   { rarity: 'SSR', nameTemplate: '{theme}の覇王', promptDesc: 'supreme tyrant overlord, overwhelming power, dominating dark throne, majestic terrifying presence', cheerTemplate: '{theme}の覇王のように、今日もすべてを制しよう！限界を超えろ！' },
   { rarity: 'SSR', nameTemplate: '天地の{theme}神', promptDesc: 'supreme divine deity god, transcendent ethereal cosmic form, sacred celestial manifestation, heavenly realm', cheerTemplate: '天地を揺るがす力があなたの中に宿っている。今日も全力で挑もう！' },
-  // SR (6)
+  { rarity: 'SSR', nameTemplate: '{theme}の冥王', promptDesc: 'dark underworld king ruler, black ethereal flowing robes, death scythe, shadow realm background, imposing fearsome presence', cheerTemplate: '{theme}の冥王の不動の意志で、今日も絶対に課めるな！' },
+  { rarity: 'SSR', nameTemplate: '{theme}の龍皇', promptDesc: 'supreme dragon emperor, majestic enormous dragon form, ancient cosmic power, legendary transcendent presence, catastrophic energy', cheerTemplate: '龍皇の力が宿っている。今日も最高の自分を超えていけ！' },
+  { rarity: 'SSR', nameTemplate: '{theme}の時神', promptDesc: 'supreme time deity, warping space-time continuum, cosmic clock gears, transcendent timeless form, ultimate divine power', cheerTemplate: '時を超えた力で、あなたの可能性は無限大だ！今こそ動け！' },
+  // SR (10)
   { rarity: 'SR', nameTemplate: '{theme}の英雄', promptDesc: 'legendary champion hero, glorious power, noble heroic dramatic pose, brilliant lighting', cheerTemplate: '{theme}の英雄があなたを応援している！どんな困難も必ず乗り越えられる！' },
   { rarity: 'SR', nameTemplate: '{theme}の女王', promptDesc: 'powerful queen ruler, regal majestic presence, commanding authority, ornate royal crown and gown', cheerTemplate: '女王の品格で今日の壁を打ち破ろう！あなたなら絶対できる！' },
   { rarity: 'SR', nameTemplate: '{theme}の守護者', promptDesc: 'sacred guardian protector, shielding defensive stance, holy protective aura, stalwart defender armor', cheerTemplate: '守護者があなたを見守っている。自信を持って前へ進め！' },
   { rarity: 'SR', nameTemplate: '{theme}の大賢者', promptDesc: 'ancient grand sage wiseman, deep mystical knowledge, arcane glowing aura, ancient scrolls and staff', cheerTemplate: '知恵こそが最強の武器。今日も一つでも多くを学ぼう！' },
   { rarity: 'SR', nameTemplate: '{theme}の剣聖', promptDesc: 'sword saint master swordsman, ultimate blade technique, serene concentrated expression, swift movement blur', cheerTemplate: '一撃に魂を込めるように、今日の一歩に全力を尽くそう！' },
-  { rarity: 'SR', nameTemplate: '{theme}の魔王', promptDesc: 'demon lord dark powerful ruler, terrifying commanding aura, shadowy dark kingdom throne, menacing presence', cheerTemplate: '魔王の不屈の意志で、今日も最高の結果を掴み取ろう！' },
-  // R (15)
+  { rarity: 'SR', nameTemplate: '{theme}の魔王', promptDesc: 'demon lord dark powerful ruler, terrifying commanding aura, shadowy dark kingdom throne, menacing presence', cheerTemplate: '魔王の不屈の意志で、今日も最高の結果を掴み取ろう！' },  { rarity: 'SR', nameTemplate: '{theme}の賢王', promptDesc: 'wise philosopher king ruler, majestic crown and throne, scholarly intelligent aura, respected noble leadership', cheerTemplate: '賢王の判断力で、今日の壁を冷静に乗り越えよう！' },
+  { rarity: 'SR', nameTemplate: '{theme}の天使', promptDesc: 'radiant divine angel, large shining feathered wings, holy golden light aura, celestial armor, benevolent expression', cheerTemplate: '天使の加護があなたを守っている。自信を持って進め！' },
+  { rarity: 'SR', nameTemplate: '{theme}の幻術師', promptDesc: 'illusionist magician, mysterious magical illusion effects, phantom mirror images, shadowy stage performance, enchanting presence', cheerTemplate: '幻術師のように、想像力であなたの現実を塗り替えろ！' },
+  { rarity: 'SR', nameTemplate: '{theme}の戦神', promptDesc: 'god of war battle deity, fierce invincible warrior divine form, battlefield domination, powerful divine weapons', cheerTemplate: '戦神の闘志であなたの挑戦に立ち向かい、一歩も引かない！' },  // R (15)
   { rarity: 'R', nameTemplate: '{theme}の戦士', promptDesc: 'skilled battle warrior fighter, combat-ready powerful stance, determined fierce expression, decorated armor and weapon', cheerTemplate: '戦士の勇気を持って、今日の挑戦に立ち向かおう！' },
   { rarity: 'R', nameTemplate: '{theme}の魔法使い', promptDesc: 'talented mage sorcerer, casting powerful spell, swirling colorful magical energy, focused determined expression', cheerTemplate: '魔法のように、あなたの努力は必ず世界を変える！' },
   { rarity: 'R', nameTemplate: '{theme}の探偵', promptDesc: 'clever detective investigator, sharp analyzing eyes, magnifying glass clue, intellectual observant pose', cheerTemplate: '探偵のように物事をよく見つめれば、答えは必ず見つかる！' },
@@ -27,7 +32,7 @@ const ARCHETYPES: { rarity: Rarity; nameTemplate: string; promptDesc: string; ch
   { rarity: 'R', nameTemplate: '{theme}の巫女', promptDesc: 'shrine maiden priestess, spiritual sacred power, ritual ceremony, glowing sacred artifacts and orbs', cheerTemplate: '巫女の祈りのように、あなたの願いは必ず天に届く！' },
   { rarity: 'R', nameTemplate: '{theme}の竜使い', promptDesc: 'dragon tamer beast master, powerful dragon companion beside, wild adventurous spirit, commanding presence', cheerTemplate: '竜を操るように、あなたも大きな力を持っている！' },
   { rarity: 'R', nameTemplate: '{theme}の狩人', promptDesc: 'skilled hunter tracker, keen wilderness expertise, camouflage gear, focused intense expression', cheerTemplate: '狩人の鋭い目で目標を定め、今日も着実に進もう！' },
-  // N (27)
+  // N (20)
   { rarity: 'N', nameTemplate: '{theme}の見習い', promptDesc: 'eager apprentice trainee, beginner enthusiasm, learning experience, simple humble outfit', cheerTemplate: '見習いから始まっても、続けることで必ず一人前になれる！' },
   { rarity: 'N', nameTemplate: '{theme}の村人', promptDesc: 'common villager townsperson, everyday ordinary life, simple practical clothes, gentle expression', cheerTemplate: '普通の毎日の積み重ねが、いつか大きな力になる！' },
   { rarity: 'N', nameTemplate: '{theme}の農夫', promptDesc: 'hardworking farmer, cultivating fertile land, simple farming tools, outdoor honest work', cheerTemplate: '農夫のように、一つ一つ丁寧に育てれば必ず実を結ぶ！' },
@@ -48,10 +53,6 @@ const ARCHETYPES: { rarity: Rarity; nameTemplate: string; promptDesc: string; ch
   { rarity: 'N', nameTemplate: '{theme}の歌い手', promptDesc: 'singer performer vocalist, stage presence spotlight, emotional singing expression, microphone or instrument', cheerTemplate: '歌い手のように、あなたの声と行動が誰かの心に届く！' },
   { rarity: 'N', nameTemplate: '{theme}の子供', promptDesc: 'adventurous curious child, innocent wonder and joy, exploring and discovering world, playful bright expression', cheerTemplate: '子供の頃の純粋な好奇心で、今日も新しいことに挑戦しよう！' },
   { rarity: 'N', nameTemplate: '{theme}の老人', promptDesc: 'wise experienced elder senior, life wisdom and calm, peaceful content expression, long journey behind', cheerTemplate: '長年の経験を積んだ老人のように、焦らず確実に積み重ねよう！' },
-  { rarity: 'N', nameTemplate: '{theme}の踊り子', promptDesc: 'graceful dancer performer, dynamic flowing movement, colorful expressive costume, emotional dance expression', cheerTemplate: '踊り子のように、あなたの努力が美しい動きとなって現れる！' },
-  { rarity: 'N', nameTemplate: '{theme}の灯台守', promptDesc: 'lighthouse keeper guardian, ocean view from tower, guiding light darkness, solitary peaceful dedication', cheerTemplate: '灯台守のように、あなたの存在が誰かの道標になっている！' },
-  { rarity: 'N', nameTemplate: '{theme}の庭師', promptDesc: 'garden caretaker gardener, nurturing plants and flowers, peaceful outdoor work, watering can', cheerTemplate: '庭師のように、丁寧にお手入れすれば必ず美しい花が咲く！' },
-  { rarity: 'N', nameTemplate: '{theme}の果物売り', promptDesc: 'fruit vendor seller, colorful fresh produce arrangement, cheerful market outdoor scene, vibrant energy', cheerTemplate: '果物売りのように、今日も元気よく声を上げて前進しよう！' },
 ];
 
 export function generateSeasonCards(theme: string, seasonId: string): CardMaster[] {
