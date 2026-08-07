@@ -1,12 +1,12 @@
 import type { OwnedCard, Rarity, CardMaster } from '../types';
 import { CARDS_BY_RARITY } from './cardMaster';
 
-// Rarity probabilities: N=60%, R=25%, SR=12%, SSR=3%
+// Rarity probabilities: N=60%, R=28%, SR=10%, SSR=2%
 const RARITY_WEIGHTS: { rarity: Rarity; weight: number }[] = [
   { rarity: 'N', weight: 60 },
-  { rarity: 'R', weight: 25 },
-  { rarity: 'SR', weight: 12 },
-  { rarity: 'SSR', weight: 3 },
+  { rarity: 'R', weight: 28 },
+  { rarity: 'SR', weight: 10 },
+  { rarity: 'SSR', weight: 2 },
 ];
 const TOTAL_WEIGHT = RARITY_WEIGHTS.reduce((s, r) => s + r.weight, 0);
 

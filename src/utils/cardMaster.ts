@@ -1,7 +1,7 @@
 import type { CardMaster } from '../types';
 
 export const CARD_MASTER: CardMaster[] = [
-  // SSR (2)
+  // SSR (5)
   {
     id: 'card_001',
     name: '炎帝ファラオン',
@@ -16,7 +16,28 @@ export const CARD_MASTER: CardMaster[] = [
     prompt: 'divine celestial goddess, flowing cosmic dress covered in stars, long silver hair, glowing golden halo, standing among galaxies and nebula, ethereal serene expression',
     cheerMessage: '星々があなたの道を照らしている。どんな闇の中も恐れることはない！',
   },
-  // SR (6)
+  {
+    id: 'card_051',
+    name: '深淵の魔王ザフィール',
+    rarity: 'SSR',
+    prompt: 'dark demon lord ruler of the abyss, black and purple armor with glowing cracks, massive dark wings, throne of darkness, crimson eyes, overwhelming presence',
+    cheerMessage: '深淵から這い上がった者こそが真の王者。今日も頂点を目指せ！',
+  },
+  {
+    id: 'card_052',
+    name: '時の賢者クロノス',
+    rarity: 'SSR',
+    prompt: 'ancient time wizard sage, flowing silver robes covered in clock gears and hourglasses, long white beard, glowing blue eyes, infinite timeline background',
+    cheerMessage: '時間は最大の贈り物。今この瞬間を全力で生きよう！',
+  },
+  {
+    id: 'card_053',
+    name: '鳳凰の巫女フェニア',
+    rarity: 'SSR',
+    prompt: 'divine phoenix priestess, radiant vermilion and gold ceremonial robes, sacred phoenix bird companion, blazing sunset sky, serene powerful expression',
+    cheerMessage: '炎から蘇る鳳凰のように、何度でも立ち上がれる力があなたにはある！',
+  },
+  // SR (10)
   {
     id: 'card_003',
     name: '竜騎士ドラコ',
@@ -58,6 +79,34 @@ export const CARD_MASTER: CardMaster[] = [
     rarity: 'SR',
     prompt: 'holy maiden healer, white and gold battle armor, radiant feathered wings of light, healing golden aura, sacred celestial temple background',
     cheerMessage: '光があなたを包んでいる。今日一日も笑顔でいられますように！',
+  },
+  {
+    id: 'card_054',
+    name: '烈風の剣士カゼン',
+    rarity: 'SR',
+    prompt: 'swift wind swordsman, light leather armor with wind streamers, dual blades, tornado swirling around, mid-air battle pose, dynamic action',
+    cheerMessage: '風のように素早く、嵐のように力強く。あなたは誰にも止められない！',
+  },
+  {
+    id: 'card_055',
+    name: '鋼鉄の武者ブシオ',
+    rarity: 'SR',
+    prompt: 'powerful samurai warrior, heavy ornate black and gold armor, katana raised, cherry blossom battlefield, fierce battle cry expression',
+    cheerMessage: '鋼の意志を持て。折れない心があれば、どんな壁も破れる！',
+  },
+  {
+    id: 'card_056',
+    name: '霊峰の仙人ゼンカイ',
+    rarity: 'SR',
+    prompt: 'immortal mountain sage, simple flowing white robes, long staff, misty mountain peak above clouds, tranquil enlightened smile, floating lotus petals',
+    cheerMessage: '静かな心が最大の力。焦らず一歩一歩、山頂まで歩こう！',
+  },
+  {
+    id: 'card_057',
+    name: '紅蓮の踊り子エンブ',
+    rarity: 'SR',
+    prompt: 'crimson flame dancer performer, flowing scarlet and orange dress, fire fans in hands, dramatic stage with fire effects, passionate expressive performance',
+    cheerMessage: '情熱を燃やして踊るように、今日も全力で輝こう！',
   },
   // R (15)
   {
@@ -165,7 +214,7 @@ export const CARD_MASTER: CardMaster[] = [
     prompt: 'master gem crafter artisan, workshop full of sparkling precious gems, using precision tools, warm glowing workshop light, proud expression',
     cheerMessage: '原石を磨けば宝石になる。あなた自身が最高の宝石だ！',
   },
-  // N (27)
+  // N (20)
   {
     id: 'card_024',
     name: '村人の英雄タロウ',
@@ -305,55 +354,6 @@ export const CARD_MASTER: CardMaster[] = [
     rarity: 'N',
     prompt: 'thoughtful stargazer character, brass telescope on hilltop, breathtaking night sky with milky way, peaceful contemplative mood',
     cheerMessage: '星のように輝く未来がある。今夜も夢を見て！',
-  },
-  {
-    id: 'card_044',
-    name: '小さな鉱夫マイナ',
-    rarity: 'N',
-    prompt: 'young miner character, hard hat with glowing lamp, sparkling gemstone cave, pickaxe, excited discovery expression',
-    cheerMessage: '地道に掘り続けた先に宝石がある。諦めないで！',
-  },
-  {
-    id: 'card_045',
-    name: '風車小屋のミラー',
-    rarity: 'N',
-    prompt: 'windmill keeper character, simple practical clothes, Dutch windmill background, golden wheat field, peaceful pastoral sunset scene',
-    cheerMessage: '風任せでも回り続ける風車のように、流れに乗って進もう！',
-  },
-  {
-    id: 'card_046',
-    name: '手紙配達員ポスト',
-    rarity: 'N',
-    prompt: 'cheerful mail carrier, neat uniform, red bicycle, full mailbag with letters, sunny small town street background',
-    cheerMessage: '気持ちを届けることが大切。今日も誰かに優しくしよう！',
-  },
-  {
-    id: 'card_047',
-    name: '洗濯屋のランドリ',
-    rarity: 'N',
-    prompt: 'laundry keeper character, colorful clothes hanging on line in breeze, bright sunny courtyard, basin and soap suds, fresh feeling',
-    cheerMessage: 'きれいにすることで心もスッキリ！今日もリフレッシュしよう！',
-  },
-  {
-    id: 'card_048',
-    name: '見習い兵士ソルジャ',
-    rarity: 'N',
-    prompt: 'young soldier trainee, simple basic armor, training grounds background, determined eyes, dawn morning light',
-    cheerMessage: '訓練の積み重ねが本物の強さを生む。今日の練習を大切に！',
-  },
-  {
-    id: 'card_049',
-    name: 'パン屋の朝番ベーク',
-    rarity: 'N',
-    prompt: 'bakery worker before dawn, flour-dusted apron, warm cozy bakery with fresh baked bread aroma, early morning light, gentle smile',
-    cheerMessage: '毎朝のパン焼きのように、毎日の習慣が人生を豊かにする！',
-  },
-  {
-    id: 'card_050',
-    name: '旅の道化師ジョーカ',
-    rarity: 'N',
-    prompt: 'joyful traveling jester, colorful patchwork outfit, bells on jester hat, country road background, juggling performance',
-    cheerMessage: '笑いを忘れずに！どんな旅も楽しめる人が最高の旅人だ！',
   },
 ];
 
