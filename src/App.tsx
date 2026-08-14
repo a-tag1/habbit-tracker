@@ -127,6 +127,9 @@ function App() {
             imageProvider={imageSettings.provider}
             hfToken={imageSettings.hfToken}
             hfModel={imageSettings.hfModel}
+            cfAccountId={imageSettings.cfAccountId}
+            cfToken={imageSettings.cfToken}
+            cfModel={imageSettings.cfModel}
           />
         )}
       </main>

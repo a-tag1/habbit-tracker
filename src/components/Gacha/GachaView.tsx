@@ -18,9 +18,13 @@ interface Props {
   onReplaceCard: (cardMasterId: string, newCard: OwnedCard) => void;
   onCreateSeason: (theme: string) => void;
   onSwitchSeason: (id: string | null) => void;
-  imageProvider: 'pollinations' | 'huggingface';
-  hfToken: string;
-  hfModel: string;
+  // --- プロバイダー設定の拡張 ---
+  imageProvider: 'pollinations' | 'huggingface' | 'cloudflare';
+  hfToken?: string;
+  hfModel?: string;
+  cfAccountId?: string;
+  cfToken?: string;
+  cfModel?: string;
 }
 
 const RARITY_STYLE: Record<Rarity, { border: string; text: string; glow: string; label: string }> = {
@@ -153,7 +157,7 @@ function SeasonCreationModal({
 export default function GachaView({
   coins, ownedCards, customSeasons, activeSeasonId,
   onSpendCoins, onAddCards, onAddCoins, onReplaceCard, onCreateSeason, onSwitchSeason,
-  imageProvider, hfToken, hfModel,
+  imageProvider, hfToken, hfModel, cfAccountId, cfToken, cfModel, // ← Cloudflare用のPropsを受け取り
 }: Props) {
   const [subTab, setSubTab] = useState<SubTab>('gacha');
   const [phase, setPhase] = useState<GachaPhase>('idle');
@@ -209,10 +213,15 @@ export default function GachaView({
     const ctx: DrawContext | undefined = activeSeasonId !== null
       ? { cardPool: currentSeasonCardsByRarity, seasonId: activeSeasonId }
       : undefined;
+
+    // --- ImageConfig に Cloudflare パラメータを設定 ---
     const imgConfig: ImageConfig = {
       provider: imageProvider,
       hfToken: hfToken || undefined,
       hfModel,
+      cfAccountId: cfAccountId || undefined,
+      cfToken: cfToken || undefined,
+      cfModel,
     };
 
     Promise.all([

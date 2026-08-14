@@ -75,10 +75,13 @@ export interface GachaData {
   activeSeasonId: string | null;
 }
 
-export type ImageProvider = 'pollinations' | 'huggingface';
+export type ImageProvider = 'pollinations' | 'huggingface' | 'cloudflare';
 
 export interface ImageSettings {
   provider: ImageProvider;
   hfToken: string;
   hfModel: string;
+  cfAccountId?: string;
+  cfToken?: string;
+  cfModel?: string;
 }

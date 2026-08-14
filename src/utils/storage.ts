@@ -7,7 +7,10 @@ const IMAGE_SETTINGS_KEY = 'habit-tracker-image-settings';
 const defaultImageSettings: ImageSettings = {
   provider: 'pollinations',
   hfToken: '',
-  hfModel: 'stabilityai/stable-diffusion-3-medium-diffusers',
+  hfModel: 'stabilityai/stable-diffusion-3-medium-diffusers/black-forest-labs/FLUX.1-schnell',
+  cfAccountId: '',
+  cfToken: '',
+  cfModel: '@cf/bytedance/stable-diffusion-xl-lightning',
 };
 
 export function loadImageSettings(): ImageSettings {

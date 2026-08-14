@@ -56,23 +56,91 @@ async function buildImageUrlHF(prompt: string, seed: number, token: string, mode
   });
 }
 
+// --------------------------------------------------------------------------
+// Cloudflare Workers AI 用の画像生成処理（Workerプロキシ経由）
+// --------------------------------------------------------------------------
+async function buildImageUrlCF(
+  prompt: string,
+  seed: number,
+  _accountId: string, // 未使用（既存の呼び出し元との互換性のために残すか削ってOK）
+  _token: string,     // 未使用
+  model: string
+): Promise<string> {
+  const fullPrompt = `${prompt}, masterpiece, anime style, trading card format`;
+
+  // デプロイした Cloudflare Worker の URL に変更
+  const PROXY_URL = 'https://cf-ai-proxy.<あなたのサブドメイン>.workers.dev';
+
+  const response = await fetch(PROXY_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      prompt: fullPrompt,
+      seed: seed % 2147483647,
+      model: model, // モデル名も必要に応じて Worker へ引き継ぐ
+      width: 512,
+      height: 768,
+    }),
+  });
+
+  if (!response.ok) throw new Error(`Cloudflare Worker API Error: ${response.status}`);
+
+  // 返ってきた画像バイナリを DataURL に変換
+  const blob = await response.blob();
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(new Error('blob read failed'));
+    reader.readAsDataURL(blob);
+  });
+}
+
+// --------------------------------------------------------------------------
+// ImageConfig 型の拡張
+// --------------------------------------------------------------------------
 export interface ImageConfig {
-  provider: 'pollinations' | 'huggingface';
+  provider: 'pollinations' | 'huggingface' | 'cloudflare';
   hfToken?: string;
   hfModel?: string;
+  cfAccountId?: string;
+  cfToken?: string;
+  cfModel?: string;
 }
 
 const DEFAULT_HF_MODEL = 'stabilityai/stable-diffusion-3-medium-diffusers';
+// 高速かつ高品質な FLUX.1-schnell をデフォルトに設定（SDXL 等に変更も可能）
+const DEFAULT_CF_MODEL = '@cf/black-forest-labs/flux-1-schnell';
 
 async function resolveImageUrl(prompt: string, seed: number, config?: ImageConfig): Promise<string> {
+  // Hugging Face 選択時
   if (config?.provider === 'huggingface' && config.hfToken) {
     try {
       return await buildImageUrlHF(prompt, seed, config.hfToken, config.hfModel ?? DEFAULT_HF_MODEL);
     } catch {
-      // HF失敗時はpollinationsへフォールバック
+      // 失敗時は pollinations へフォールバック
       return buildImageUrl(prompt, seed);
     }
   }
+
+  // Cloudflare 選択時
+  if (config?.provider === 'cloudflare' && config.cfAccountId && config.cfToken) {
+    try {
+      return await buildImageUrlCF(
+        prompt,
+        seed,
+        config.cfAccountId,
+        config.cfToken,
+        config.cfModel ?? DEFAULT_CF_MODEL
+      );
+    } catch {
+      // 失敗時は pollinations へフォールバック
+      return buildImageUrl(prompt, seed);
+    }
+  }
+
+  // デフォルト / Pollinations 選択時
   return buildImageUrl(prompt, seed);
 }
 
@@ -151,4 +219,3 @@ export async function drawFocused(ownedMasterIds: Set<string>, ctx?: DrawContext
   const base = { master, seed, isDuplicate, coinRefund: isDuplicate ? DUPLICATE_REFUND : 0, seasonId: ctx?.seasonId };
   return [await buildDraw(base, imageConfig)];
 }
-
