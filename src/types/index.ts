@@ -84,4 +84,5 @@ export interface ImageSettings {
   cfAccountId?: string;
   cfToken?: string;
   cfModel?: string;
+  cfWorkerUrl?: string;
 }
