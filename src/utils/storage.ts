@@ -23,10 +23,18 @@ export function loadImageSettings(): ImageSettings {
     const hfModel = rawModel.startsWith('black-forest-labs/FLUX')
       ? 'stabilityai/stable-diffusion-3-medium-diffusers'
       : rawModel;
+    const validProviders = ['pollinations', 'huggingface', 'cloudflare'] as const;
+    const provider = validProviders.includes(parsed.provider as typeof validProviders[number])
+      ? (parsed.provider as typeof validProviders[number])
+      : 'pollinations';
     return {
-      provider: parsed.provider === 'huggingface' ? 'huggingface' : 'pollinations',
+      provider,
       hfToken: typeof parsed.hfToken === 'string' ? parsed.hfToken : '',
       hfModel,
+      cfAccountId: typeof parsed.cfAccountId === 'string' ? parsed.cfAccountId : '',
+      cfToken: typeof parsed.cfToken === 'string' ? parsed.cfToken : '',
+      cfModel: typeof parsed.cfModel === 'string' ? parsed.cfModel : defaultImageSettings.cfModel,
+      cfWorkerUrl: typeof parsed.cfWorkerUrl === 'string' ? parsed.cfWorkerUrl : '',
     };
   } catch {
     return defaultImageSettings;
