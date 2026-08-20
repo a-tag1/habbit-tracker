@@ -62,14 +62,12 @@ async function buildImageUrlHF(prompt: string, seed: number, token: string, mode
 async function buildImageUrlCF(
   prompt: string,
   seed: number,
-  _accountId: string, // 未使用（既存の呼び出し元との互換性のために残すか削ってOK）
-  _token: string,     // 未使用
+  workerUrl: string,
   model: string
 ): Promise<string> {
   const fullPrompt = `${prompt}, masterpiece, anime style, trading card format`;
 
-  // デプロイした Cloudflare Worker の URL に変更
-  const PROXY_URL = 'https://cf-ai-proxy.<あなたのサブドメイン>.workers.dev';
+  const PROXY_URL = workerUrl;
 
   const response = await fetch(PROXY_URL, {
     method: 'POST',
@@ -104,8 +102,7 @@ export interface ImageConfig {
   provider: 'pollinations' | 'huggingface' | 'cloudflare';
   hfToken?: string;
   hfModel?: string;
-  cfAccountId?: string;
-  cfToken?: string;
+  cfWorkerUrl?: string;
   cfModel?: string;
 }
 
@@ -128,10 +125,10 @@ async function resolveImageUrl(prompt: string, seed: number, config?: ImageConfi
   }
 
   // Cloudflare 選択時
-  if (config?.provider === 'cloudflare' && config.cfAccountId && config.cfToken) {
+  if (config?.provider === 'cloudflare' && config.cfWorkerUrl) {
     const model = config.cfModel ?? DEFAULT_CF_MODEL;
     try {
-      const url = await buildImageUrlCF(prompt, seed, config.cfAccountId, config.cfToken, model);
+      const url = await buildImageUrlCF(prompt, seed, config.cfWorkerUrl, model);
       return { url, generatedBy: { provider: 'CF Workers AI', model } };
     } catch {
       // 失敗時は pollinations へフォールバック

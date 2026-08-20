@@ -22,8 +22,7 @@ interface Props {
   imageProvider: 'pollinations' | 'huggingface' | 'cloudflare';
   hfToken?: string;
   hfModel?: string;
-  cfAccountId?: string;
-  cfToken?: string;
+  cfWorkerUrl?: string;
   cfModel?: string;
 }
 
@@ -159,7 +158,7 @@ function SeasonCreationModal({
 export default function GachaView({
   coins, ownedCards, customSeasons, activeSeasonId,
   onSpendCoins, onAddCards, onAddCoins, onReplaceCard, onCreateSeason, onSwitchSeason,
-  imageProvider, hfToken, hfModel, cfAccountId, cfToken, cfModel, // ← Cloudflare用のPropsを受け取り
+  imageProvider, hfToken, hfModel, cfWorkerUrl, cfModel,
 }: Props) {
   const [subTab, setSubTab] = useState<SubTab>('gacha');
   const [phase, setPhase] = useState<GachaPhase>('idle');
@@ -216,13 +215,11 @@ export default function GachaView({
       ? { cardPool: currentSeasonCardsByRarity, seasonId: activeSeasonId }
       : undefined;
 
-    // --- ImageConfig に Cloudflare パラメータを設定 ---
     const imgConfig: ImageConfig = {
       provider: imageProvider,
       hfToken: hfToken || undefined,
       hfModel,
-      cfAccountId: cfAccountId || undefined,
-      cfToken: cfToken || undefined,
+      cfWorkerUrl: cfWorkerUrl || undefined,
       cfModel,
     };
 
