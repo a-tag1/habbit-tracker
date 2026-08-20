@@ -279,15 +279,18 @@ export default function SettingsView({ data, onImport, theme, onThemeChange, ima
           </div>
         </section>
 
-        {/* PWA案内 */}
+        {/* バージョン情報 */}
         <section>
-          <h2 className="text-xs text-zinc-500 font-medium uppercase tracking-wider mb-3">ホーム画面に追加</h2>
-          <div className="border border-zinc-800 bg-zinc-900 rounded-2xl p-4">
-            <p className="text-xs text-zinc-400 leading-relaxed">
-              <strong className="text-zinc-200">iPhone：</strong>Safariの共有ボタン →「ホーム画面に追加」<br />
-              <strong className="text-zinc-200">Android：</strong>Chrome のメニュー →「ホーム画面に追加」<br />
-              追加後はアイコンからネイティブアプリのように起動できます。
-            </p>
+          <h2 className="text-xs text-zinc-500 font-medium uppercase tracking-wider mb-3">バージョン情報</h2>
+          <div className="border border-zinc-800 bg-zinc-900 rounded-2xl p-4 flex flex-col gap-2">
+            <div className="flex justify-between text-sm">
+              <span className="text-zinc-400">バージョン</span>
+              <span className="font-mono font-medium text-zinc-100">1.0.0</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-zinc-400">アップデート日</span>
+              <span className="font-mono font-medium text-zinc-100">2026-08-20</span>
+            </div>
           </div>
         </section>
       </div>
