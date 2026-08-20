@@ -15,7 +15,7 @@ interface Props {
 }
 
 const LEFT_STYLES: Record<TaskStatus, string> = {
-  pending: 'text-zinc-100',
+  pending: 'text-zinc-500',
   completed: 'text-emerald-400',
   skipped: 'text-zinc-500 line-through',
 };
