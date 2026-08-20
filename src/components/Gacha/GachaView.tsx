@@ -1,6 +1,6 @@
 ﻿import { useState, useEffect, useRef, useMemo } from 'react';
 import type { OwnedCard, Rarity, CustomSeason, CardMaster } from '../../types';
-import { drawCards, drawFocused, GACHA_COST_SINGLE, GACHA_COST_FOCUSED, DUPLICATE_REFUND, type GachaDraw, type DrawContext, type ImageConfig, type GeneratedBy } from '../../utils/gachaUtils';
+import { drawCards, drawFocused, GACHA_COST_SINGLE, GACHA_COST_FOCUSED, DUPLICATE_REFUND, type GachaDraw, type DrawContext, type ImageConfig } from '../../utils/gachaUtils';
 import { CARD_MASTER } from '../../utils/cardMaster';
 import CollectionView from './CollectionView';
 
