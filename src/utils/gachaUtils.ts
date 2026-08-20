@@ -113,41 +113,48 @@ const DEFAULT_HF_MODEL = 'stabilityai/stable-diffusion-3-medium-diffusers';
 // 高速かつ高品質な FLUX.1-schnell をデフォルトに設定（SDXL 等に変更も可能）
 const DEFAULT_CF_MODEL = '@cf/black-forest-labs/flux-1-schnell';
 
-async function resolveImageUrl(prompt: string, seed: number, config?: ImageConfig): Promise<string> {
+async function resolveImageUrl(prompt: string, seed: number, config?: ImageConfig): Promise<{ url: string; generatedBy: GeneratedBy }> {
   // Hugging Face 選択時
   if (config?.provider === 'huggingface' && config.hfToken) {
+    const model = config.hfModel ?? DEFAULT_HF_MODEL;
     try {
-      return await buildImageUrlHF(prompt, seed, config.hfToken, config.hfModel ?? DEFAULT_HF_MODEL);
+      const url = await buildImageUrlHF(prompt, seed, config.hfToken, model);
+      return { url, generatedBy: { provider: 'Hugging Face', model } };
     } catch {
       // 失敗時は pollinations へフォールバック
-      return buildImageUrl(prompt, seed);
+      const url = buildImageUrl(prompt, seed);
+      return { url, generatedBy: { provider: 'Pollinations.AI', model: 'flux' } };
     }
   }
 
   // Cloudflare 選択時
   if (config?.provider === 'cloudflare' && config.cfAccountId && config.cfToken) {
+    const model = config.cfModel ?? DEFAULT_CF_MODEL;
     try {
-      return await buildImageUrlCF(
-        prompt,
-        seed,
-        config.cfAccountId,
-        config.cfToken,
-        config.cfModel ?? DEFAULT_CF_MODEL
-      );
+      const url = await buildImageUrlCF(prompt, seed, config.cfAccountId, config.cfToken, model);
+      return { url, generatedBy: { provider: 'CF Workers AI', model } };
     } catch {
       // 失敗時は pollinations へフォールバック
-      return buildImageUrl(prompt, seed);
+      const url = buildImageUrl(prompt, seed);
+      return { url, generatedBy: { provider: 'Pollinations.AI', model: 'flux' } };
     }
   }
 
   // デフォルト / Pollinations 選択時
-  return buildImageUrl(prompt, seed);
+  const url = buildImageUrl(prompt, seed);
+  return { url, generatedBy: { provider: 'Pollinations.AI', model: 'flux' } };
+}
+
+export interface GeneratedBy {
+  provider: string;
+  model: string;
 }
 
 export interface GachaDraw {
   card: OwnedCard;
   isDuplicate: boolean;
   coinRefund: number;
+  generatedBy: GeneratedBy;
 }
 
 function drawSingle(ownedMasterIds: Set<string>, rarity?: Rarity, ctx?: DrawContext): { master: { id: string; name: string; rarity: Rarity; prompt: string; cheerMessage: string }; seed: number; isDuplicate: boolean; coinRefund: number; seasonId?: string } {
@@ -163,7 +170,7 @@ function drawSingle(ownedMasterIds: Set<string>, rarity?: Rarity, ctx?: DrawCont
 
 async function buildDraw(base: ReturnType<typeof drawSingle>, imageConfig?: ImageConfig): Promise<GachaDraw> {
   const { master, seed, isDuplicate, coinRefund, seasonId } = base;
-  const imageUrl = await resolveImageUrl(master.prompt, seed, imageConfig);
+  const { url: imageUrl, generatedBy } = await resolveImageUrl(master.prompt, seed, imageConfig);
   const card: OwnedCard = {
     userCardId: `uc_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
     cardMasterId: master.id,
@@ -175,7 +182,7 @@ async function buildDraw(base: ReturnType<typeof drawSingle>, imageConfig?: Imag
     obtainedAt: new Date().toISOString(),
     seasonId,
   };
-  return { card, isDuplicate, coinRefund };
+  return { card, isDuplicate, coinRefund, generatedBy };
 }
 
 export async function drawCards(ownedMasterIds: Set<string>, ctx?: DrawContext, imageConfig?: ImageConfig): Promise<GachaDraw[]> {

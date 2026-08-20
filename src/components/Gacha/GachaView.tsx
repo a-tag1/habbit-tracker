@@ -1,6 +1,6 @@
 ﻿import { useState, useEffect, useRef, useMemo } from 'react';
 import type { OwnedCard, Rarity, CustomSeason, CardMaster } from '../../types';
-import { drawCards, drawFocused, GACHA_COST_SINGLE, GACHA_COST_FOCUSED, DUPLICATE_REFUND, type GachaDraw, type DrawContext, type ImageConfig } from '../../utils/gachaUtils';
+import { drawCards, drawFocused, GACHA_COST_SINGLE, GACHA_COST_FOCUSED, DUPLICATE_REFUND, type GachaDraw, type DrawContext, type ImageConfig, type GeneratedBy } from '../../utils/gachaUtils';
 import { CARD_MASTER } from '../../utils/cardMaster';
 import CollectionView from './CollectionView';
 
@@ -70,7 +70,7 @@ function CardImage({ url, name, rarity }: { url: string; name: string; rarity: R
 }
 
 function ResultCard({ draw, index }: { draw: GachaDraw; index: number }) {
-  const { card, isDuplicate, coinRefund } = draw;
+  const { card, isDuplicate, coinRefund, generatedBy } = draw;
   const style = RARITY_STYLE[card.rarity];
   return (
     <div
@@ -84,6 +84,8 @@ function ResultCard({ draw, index }: { draw: GachaDraw; index: number }) {
           {isDuplicate && <span className="text-[10px] text-yellow-400 font-bold">被り +{coinRefund}🪙</span>}
         </div>
         <p className="text-[11px] text-zinc-200 font-medium leading-tight mt-0.5 truncate">{card.name}</p>
+        <p className="text-[9px] text-zinc-500 mt-0.5 leading-tight truncate">{generatedBy.provider}</p>
+        <p className="text-[9px] text-zinc-600 leading-tight truncate">{generatedBy.model}</p>
       </div>
     </div>
   );
