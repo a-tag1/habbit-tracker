@@ -424,7 +424,7 @@ export default function GachaView({
                   {(['SSR', 'SR', 'R', 'N'] as const).map(r => (
                     <div key={r}>
                       <div className={`text-xs font-bold ${RARITY_STYLE[r].text}`}>{r}</div>
-                      <div className="text-xs text-zinc-500">{r === 'SSR' ? '2%' : r === 'SR' ? '10%' : r === 'R' ? '28%' : '60%'}</div>
+                      <div className="text-xs text-zinc-500">{r === 'SSR' ? '3%' : r === 'SR' ? '12%' : r === 'R' ? '30%' : '55%'}</div>
                     </div>
                   ))}
                 </div>
