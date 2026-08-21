@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { OwnedCard, Rarity, CustomSeason, CardMaster } from '../../types';
 import { CARD_MASTER } from '../../utils/cardMaster';
+import { CARD_MASTER as CARD_MASTER_2, SEASON2_ID } from '../../utils/cardMaster2';
 
 const RARITY_STYLE: Record<Rarity, { border: string; text: string; bg: string }> = {
   N:   { border: 'border-zinc-600',   text: 'text-zinc-400',   bg: 'bg-zinc-800' },
@@ -19,8 +20,13 @@ export default function CollectionView({ ownedCards, customSeasons, activeSeason
   const [viewingSeason, setViewingSeason] = useState<string | null>(activeSeasonId);
   const [selected, setSelected] = useState<OwnedCard | null>(null);
 
+  const baseOwnedIds = new Set(ownedCards.filter(c => !c.seasonId).map(c => c.cardMasterId));
+  const isBaseSeasonComplete = CARD_MASTER.length > 0 && CARD_MASTER.every(c => baseOwnedIds.has(c.id));
+
   const viewingCards: CardMaster[] = viewingSeason === null
     ? CARD_MASTER
+    : viewingSeason === SEASON2_ID
+    ? CARD_MASTER_2
     : (customSeasons.find(s => s.id === viewingSeason)?.cards ?? CARD_MASTER);
 
   const ownedInSeason = ownedCards.filter(c =>
@@ -35,7 +41,7 @@ export default function CollectionView({ ownedCards, customSeasons, activeSeason
       {/* シーズンタブ + 取得率バー */}
       <div className="px-4 py-3 border-b border-zinc-800 shrink-0">
         {/* シーズンタブ */}
-        {customSeasons.length > 0 && (
+        {(isBaseSeasonComplete || customSeasons.length > 0) && (
           <div className="flex gap-1.5 overflow-x-auto pb-2 -mx-1 px-1">
             <button
               onClick={() => setViewingSeason(null)}
@@ -43,6 +49,14 @@ export default function CollectionView({ ownedCards, customSeasons, activeSeason
             >
               ベース
             </button>
+            {isBaseSeasonComplete && (
+              <button
+                onClick={() => setViewingSeason(SEASON2_ID)}
+                className={`shrink-0 px-3 py-1 rounded-full text-xs font-medium border transition-all ${viewingSeason === SEASON2_ID ? 'bg-blue-600/30 border-blue-500 text-blue-300' : 'bg-zinc-800 border-zinc-700 text-zinc-500'}`}
+              >
+                シーズン2
+              </button>
+            )}
             {customSeasons.map(s => (
               <button
                 key={s.id}
@@ -56,7 +70,7 @@ export default function CollectionView({ ownedCards, customSeasons, activeSeason
         )}
         <div className="flex items-center justify-between mb-1.5">
           <span className="text-xs text-zinc-400 font-medium">
-            {viewingSeason === null ? 'ベースシーズン' : customSeasons.find(s => s.id === viewingSeason)?.theme}
+            {viewingSeason === null ? 'ベースシーズン' : viewingSeason === SEASON2_ID ? 'シーズン2' : customSeasons.find(s => s.id === viewingSeason)?.theme}
           </span>
           <span className="text-xs font-mono text-zinc-300">{owned} / {total} 枚</span>
         </div>

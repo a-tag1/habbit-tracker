@@ -2,6 +2,7 @@
 import type { OwnedCard, Rarity, CustomSeason, CardMaster } from '../../types';
 import { drawCards, drawFocused, GACHA_COST_SINGLE, GACHA_COST_FOCUSED, DUPLICATE_REFUND, type GachaDraw, type DrawContext, type ImageConfig } from '../../utils/gachaUtils';
 import { CARD_MASTER } from '../../utils/cardMaster';
+import { CARD_MASTER as CARD_MASTER_2, SEASON2_ID } from '../../utils/cardMaster2';
 import CollectionView from './CollectionView';
 
 type GachaPhase = 'idle' | 'pulling' | 'reveal';
@@ -172,6 +173,7 @@ export default function GachaView({
 
   const currentSeasonMaster: CardMaster[] = useMemo(() => {
     if (activeSeasonId === null) return CARD_MASTER;
+    if (activeSeasonId === SEASON2_ID) return CARD_MASTER_2;
     return customSeasons.find(s => s.id === activeSeasonId)?.cards ?? CARD_MASTER;
   }, [activeSeasonId, customSeasons]);
 
@@ -193,8 +195,17 @@ export default function GachaView({
     [currentSeasonMaster, ownedMasterIds]
   );
 
+  const isBaseSeasonComplete = useMemo(() => {
+    const baseOwnedIds = new Set(
+      ownedCards.filter(c => !c.seasonId).map(c => c.cardMasterId)
+    );
+    return CARD_MASTER.length > 0 && CARD_MASTER.every(c => baseOwnedIds.has(c.id));
+  }, [ownedCards]);
+
   const activeSeasonTheme = activeSeasonId === null
     ? 'ベースシーズン'
+    : activeSeasonId === SEASON2_ID
+    ? 'シーズン2'
     : (customSeasons.find(s => s.id === activeSeasonId)?.theme ?? '');
 
   const handleCreateSeason = (theme: string) => {
@@ -357,7 +368,7 @@ export default function GachaView({
             <div className="flex flex-col flex-1 overflow-y-auto px-4 py-4 gap-4">
 
               {/* シーズンセレクター */}
-              {customSeasons.length > 0 && (
+              {(isBaseSeasonComplete || customSeasons.length > 0) && (
                 <div>
                   <p className="text-[10px] text-zinc-500 mb-1.5 font-medium">シーズン</p>
                   <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1">
@@ -367,6 +378,14 @@ export default function GachaView({
                     >
                       ベース
                     </button>
+                    {isBaseSeasonComplete && (
+                      <button
+                        onClick={() => onSwitchSeason(SEASON2_ID)}
+                        className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${activeSeasonId === SEASON2_ID ? 'bg-blue-600/30 border-blue-500 text-blue-300' : 'bg-zinc-800 border-zinc-700 text-zinc-500'}`}
+                      >
+                        シーズン2
+                      </button>
+                    )}
                     {customSeasons.map(s => (
                       <button
                         key={s.id}
@@ -387,13 +406,35 @@ export default function GachaView({
                     <span className="text-lg">🏆</span>
                     <span className="text-sm font-bold text-yellow-300">{activeSeasonTheme} コンプリート！</span>
                   </div>
-                  <p className="text-xs text-zinc-400 mb-3">新しいテーマで50枚の新カードを生成できます</p>
-                  <button
-                    onClick={() => setShowSeasonModal(true)}
-                    className="w-full py-2.5 rounded-lg bg-gradient-to-r from-yellow-600 to-orange-600 text-white text-sm font-semibold"
-                  >
-                    ✦ 新しいテーマを召喚する
-                  </button>
+                  {activeSeasonId === null ? (
+                    <>
+                      <p className="text-xs text-zinc-400 mb-3">シーズン2またはカスタムテーマへ進めます</p>
+                      <div className="flex flex-col gap-2">
+                        <button
+                          onClick={() => onSwitchSeason(SEASON2_ID)}
+                          className="w-full py-2.5 rounded-lg bg-gradient-to-r from-blue-600 to-cyan-600 text-white text-sm font-semibold"
+                        >
+                          ✦ シーズン2へ進む（50枚）
+                        </button>
+                        <button
+                          onClick={() => setShowSeasonModal(true)}
+                          className="w-full py-2.5 rounded-lg bg-gradient-to-r from-yellow-600 to-orange-600 text-white text-sm font-semibold"
+                        >
+                          ✦ カスタムテーマを召喚する
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-xs text-zinc-400 mb-3">新しいテーマで50枚の新カードを生成できます</p>
+                      <button
+                        onClick={() => setShowSeasonModal(true)}
+                        className="w-full py-2.5 rounded-lg bg-gradient-to-r from-yellow-600 to-orange-600 text-white text-sm font-semibold"
+                      >
+                        ✦ 新しいテーマを召喚する
+                      </button>
+                    </>
+                  )}
                 </div>
               )}
 
