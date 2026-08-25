@@ -3,6 +3,9 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.tsx'
 
+// ブラウザのストレージ圧迫時に自動削除されないよう永続化許可を要求
+navigator.storage?.persist?.();
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <App />
