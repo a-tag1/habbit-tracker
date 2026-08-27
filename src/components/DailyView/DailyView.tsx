@@ -72,7 +72,7 @@ export default function DailyView({ tasks, history, currentDate, onDateChange, o
       onTouchEnd={onTouchEnd}
     >
       {/* ヘッダー */}
-      <div className="px-4 pt-4 pb-3 border-b border-zinc-800">
+      <div className="nav-surface px-4 pt-4 pb-3 border-b border-zinc-800">
         <div className="relative flex items-center justify-between mb-2">
           <button
             onClick={goPrev}

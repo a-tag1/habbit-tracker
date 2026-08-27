@@ -64,7 +64,7 @@ export default function StatisticsView({ tasks, history }: Props) {
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
       {/* 基準月ナビゲーション */}
-      <div className="px-4 pt-4 pb-2 flex items-center justify-between">
+      <div className="nav-surface px-4 pt-4 pb-2 flex items-center justify-between">
         <button onClick={goPrev} className="p-2 text-zinc-400 hover:text-zinc-100">‹</button>
         <span className="font-semibold text-sm text-zinc-100">{formatMonth(baseMonth)}</span>
         <button
@@ -76,7 +76,7 @@ export default function StatisticsView({ tasks, history }: Props) {
       </div>
 
       {/* 期間セレクター */}
-      <div className="px-4 pb-3 border-b border-zinc-800 flex items-center justify-center gap-2">
+      <div className="nav-surface px-4 pb-3 border-b border-zinc-800 flex items-center justify-center gap-2">
         {RANGE_LABELS.map(r => (
           <button
             key={r.value}

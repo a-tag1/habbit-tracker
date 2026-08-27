@@ -39,7 +39,7 @@ export default function CollectionView({ ownedCards, customSeasons, activeSeason
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
       {/* シーズンタブ + 取得率バー */}
-      <div className="px-4 py-3 border-b border-zinc-800 shrink-0">
+      <div className="nav-surface px-4 py-3 border-b border-zinc-800 shrink-0">
         {/* シーズンタブ */}
         {(isBaseSeasonComplete || customSeasons.length > 0) && (
           <div className="flex gap-1.5 overflow-x-auto pb-2 -mx-1 px-1">

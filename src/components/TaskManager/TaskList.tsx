@@ -48,7 +48,7 @@ export default function TaskList({ tasks, onAdd, onUpdate, onDelete, onReorder }
 
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
-      <div className="px-4 pt-4 pb-3 border-b border-zinc-800 flex items-center justify-between">
+      <div className="nav-surface px-4 pt-4 pb-3 border-b border-zinc-800 flex items-center justify-between">
         <h1 className="font-semibold text-base text-zinc-100">タスク管理</h1>
         <button
           onClick={() => { setEditingTask(null); setShowModal(true); }}

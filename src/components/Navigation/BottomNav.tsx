@@ -15,7 +15,7 @@ const NAV_ITEMS: { view: AppView; label: string; icon: string }[] = [
 
 export default function BottomNav({ current, onChange }: Props) {
   return (
-    <nav className="flex border-t border-zinc-800 bg-zinc-900 shrink-0 pb-safe">
+    <nav className="flex border-t border-zinc-800 nav-surface shrink-0 pb-safe">
       {NAV_ITEMS.map(item => (
         <button
           key={item.view}

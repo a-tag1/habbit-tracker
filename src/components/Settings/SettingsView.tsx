@@ -21,9 +21,9 @@ const THEME_OPTIONS: {
   border: string;
   accent: string;
 }[] = [
-  { key: 'black',      label: 'ブラック',       bg: '#18181b', fg: '#f4f4f5', card: '#27272a', border: '#3f3f46', accent: '#10b981' },
+  { key: 'black',      label: 'ブラック',       bg: '#27272a', fg: '#f4f4f5', card: '#18181b', border: '#3f3f46', accent: '#10b981' },
   { key: 'white',      label: 'ホワイト',       bg: '#ffffff', fg: '#18181b', card: '#f4f4f5', border: '#e4e4e7', accent: '#16a34a' },
-  { key: 'blue',       label: 'ブルー',         bg: '#0f172a', fg: '#e2e8f0', card: '#1e293b', border: '#334155', accent: '#3b82f6' },
+  { key: 'blue',       label: 'ブルー',         bg: '#1e293b', fg: '#e2e8f0', card: '#0f172a', border: '#334155', accent: '#3b82f6' },
   { key: 'white-blue', label: 'ホワイト×ブルー', bg: '#ffffff', fg: '#18181b', card: '#eff6ff', border: '#dbeafe', accent: '#3b82f6' },
   { key: 'sonota-theme', label: 'その他', bg: '#ffffff', fg: '#1616e2', card: '#effff1', border: '#dbfedd', accent: '#f63ba8' },
 ];
@@ -60,7 +60,7 @@ export default function SettingsView({ data, onImport, theme, onThemeChange, ima
 
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
-      <div className="px-4 pt-4 pb-3 border-b border-zinc-800">
+      <div className="nav-surface px-4 pt-4 pb-3 border-b border-zinc-800">
         <h1 className="font-semibold text-base text-zinc-100">設定</h1>
       </div>
 

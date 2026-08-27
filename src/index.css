@@ -88,13 +88,15 @@ body {
 
 /* デフォルト（ブラック） */
 :root {
-  --app-bg: #18181b;
+  --app-bg: #27272a;
+  --nav-bg: #09090b;
   --app-color: #f4f4f5;
 }
 
 /* ホワイトテーマ：zinc スケールを反転 */
 [data-theme="white"] {
   --app-bg: #ffffff;
+  --nav-bg: #1e3a5f;
   --app-color: #18181b;
 
   /* zinc: 暗 → 明へ反転 */
@@ -127,7 +129,8 @@ body {
 
 /* ブルーテーマ：zinc を slate（青灰）スケールへ差し替え */
 [data-theme="blue"] {
-  --app-bg: #0f172a;
+  --app-bg: #1e293b;
+  --nav-bg: #0f172a;
   --app-color: #e2e8f0;
 
   /* zinc → slate（青みがかったグレー） */
@@ -160,6 +163,7 @@ body {
 /* ホワイト×ブルーテーマ：白背景＋青アクセント */
 [data-theme="white-blue"] {
   --app-bg: #ffffff;
+  --nav-bg: #1e3a8a;
   --app-color: #18181b;
   --task-complete-bg: rgb(59 130 246 / 0.20);
 
@@ -194,6 +198,7 @@ body {
 /* その他テーマ：白背景＋青アクセント */
 [data-theme="sonota-theme"] {
   --app-bg: #ffffff;
+  --nav-bg: #1f2937;
   --app-color: #18181b;
   --task-complete-bg: rgb(59 130 246 / 0.20);
 
@@ -237,6 +242,10 @@ body {
 
 ::-webkit-scrollbar {
   display: none;
+}
+
+.nav-surface {
+  background-color: var(--nav-bg);
 }
 
 .pb-safe {

@@ -260,7 +260,7 @@ export default function GachaView({
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
       {/* ヘッダー */}
-      <div className="px-4 pt-4 pb-3 border-b border-zinc-800 shrink-0">
+      <div className="nav-surface px-4 pt-4 pb-3 border-b border-zinc-800 shrink-0">
         <div className="flex items-center justify-between mb-3">
           <h1 className="font-semibold text-base text-zinc-100">ガチャ</h1>
           <div className="flex items-center gap-1.5 bg-zinc-800 rounded-full px-3 py-1">
