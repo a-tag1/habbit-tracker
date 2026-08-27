@@ -21,7 +21,7 @@ const THEME_OPTIONS: {
   border: string;
   accent: string;
 }[] = [
-  { key: 'black',      label: 'ブラック',       bg: '#27272a', fg: '#f4f4f5', card: '#18181b', border: '#3f3f46', accent: '#10b981' },
+  { key: 'black',      label: 'ブラック',       bg: '#27272a', fg: '#f4f4f5', card: '#18181b', border: '#3f3f46', accent: '#3b82f6' },
   { key: 'white',      label: 'ホワイト',       bg: '#ffffff', fg: '#18181b', card: '#f4f4f5', border: '#e4e4e7', accent: '#16a34a' },
   { key: 'blue',       label: 'ブルー',         bg: '#1e293b', fg: '#e2e8f0', card: '#0f172a', border: '#334155', accent: '#3b82f6' },
   { key: 'white-blue', label: 'ホワイト×ブルー', bg: '#ffffff', fg: '#18181b', card: '#eff6ff', border: '#dbeafe', accent: '#3b82f6' },
