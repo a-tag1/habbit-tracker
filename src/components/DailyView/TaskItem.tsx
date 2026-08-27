@@ -51,11 +51,15 @@ export default function TaskItem({ task, status, history, dateStr, onComplete, o
           const Icon = TASK_ICON_MAP[task.icon!];
           return Icon ? <Icon size={20} strokeWidth={1.5} className="shrink-0 opacity-70" /> : null;
         })()}
-        <span className="text-sm font-mono w-5 flex items-center justify-center shrink-0 opacity-70">
-          {status === 'completed'
-            ? <Check size={20} strokeWidth={3} />
-            : STATUS_ICON[status]}
-        </span>
+        {status === 'completed' ? (
+          <span className="w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center shrink-0">
+            <Check size={13} strokeWidth={3} className="text-white" />
+          </span>
+        ) : (
+          <span className="text-sm font-mono w-5 flex items-center justify-center shrink-0 opacity-70">
+            {STATUS_ICON[status]}
+          </span>
+        )}
         <span className="font-medium truncate text-sm">{task.title}</span>
         {progress && (
           <span className={`text-xs font-mono shrink-0 ml-auto ${
