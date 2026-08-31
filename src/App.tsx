@@ -14,8 +14,12 @@ import SettingsView from './components/Settings/SettingsView'
 import BottomNav from './components/Navigation/BottomNav'
 import GachaView from './components/Gacha/GachaView'
 
+const VIEW_ORDER: AppView[] = ['daily', 'tasks', 'statistics', 'gacha', 'settings']
+
 function App() {
   const [currentView, setCurrentView] = useState<AppView>('daily')
+  const [slideDir, setSlideDir] = useState<'left' | 'right' | null>(null)
+  const [viewKey, setViewKey] = useState(0)
   const [currentDate, setCurrentDate] = useState(toDateString(new Date()))
   const { theme, setTheme } = useTheme()
   const [imageSettings, setImageSettings] = useState<ImageSettings>(() => loadImageSettings())
@@ -23,6 +27,14 @@ function App() {
     setImageSettings(s)
     saveImageSettings(s)
   }, [])
+
+  const navigateTo = useCallback((view: AppView) => {
+    if (view === currentView) return
+    const dir = VIEW_ORDER.indexOf(view) > VIEW_ORDER.indexOf(currentView) ? 'right' : 'left'
+    setSlideDir(dir)
+    setViewKey(k => k + 1)
+    setCurrentView(view)
+  }, [currentView])
   const {
     tasks,
     history,
@@ -76,6 +88,10 @@ function App() {
     <div className="flex flex-col" style={{ height: '100dvh' }}>
       {/* メインコンテンツ */}
       <main className="flex-1 flex flex-col overflow-hidden">
+        <div
+          key={viewKey}
+          className={`flex flex-col flex-1 overflow-hidden${slideDir === 'right' ? ' view-from-right' : slideDir === 'left' ? ' view-from-left' : ''}`}
+        >
         {currentView === 'daily' && (
           <DailyView
             tasks={tasks}
@@ -87,7 +103,7 @@ function App() {
             coins={coins}
             lastCoinGain={lastCoinGain}
             gainKey={gainKey}
-            onNavigateGacha={() => setCurrentView('gacha')}
+            onNavigateGacha={() => navigateTo('gacha')}
           />
         )}
         {currentView === 'tasks' && (
@@ -131,10 +147,11 @@ function App() {
             cfModel={imageSettings.cfModel}
           />
         )}
+        </div>
       </main>
 
       {/* ボトムナビゲーション */}
-      <BottomNav current={currentView} onChange={setCurrentView} />
+      <BottomNav current={currentView} onChange={navigateTo} />
     </div>
   )
 }

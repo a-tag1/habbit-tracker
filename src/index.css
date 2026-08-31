@@ -48,6 +48,21 @@ body {
 .slide-from-right { animation: slide-in-from-right 0.22s ease-out; }
 .slide-from-left  { animation: slide-in-from-left  0.22s ease-out; }
 
+/* ── 画面切り替えスライドアニメーション ── */
+
+@keyframes view-in-right {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+
+@keyframes view-in-left {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(0); }
+}
+
+.view-from-right { animation: view-in-right 0.28s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
+.view-from-left  { animation: view-in-left  0.28s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
+
 /* ── タスク完了アニメーション ─────────── */
 
 @keyframes task-complete {
