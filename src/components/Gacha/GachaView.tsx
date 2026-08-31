@@ -348,13 +348,16 @@ export default function GachaView({
               <div className="px-4 py-4 border-t border-zinc-800 shrink-0">
                 <button
                   onClick={() => {
-                    overwriteSet.forEach(masterId => {
-                      const draw = draws.find(d => d.card.cardMasterId === masterId);
-                      if (draw) onReplaceCard(masterId, draw.card);
-                    });
-                    setOverwriteSet(new Set());
-                    setPhase('idle');
-                    setDraws([]);
+                    try {
+                      overwriteSet.forEach(masterId => {
+                        const draw = draws.find(d => d.card.cardMasterId === masterId);
+                        if (draw) onReplaceCard(masterId, draw.card);
+                      });
+                    } finally {
+                      setOverwriteSet(new Set());
+                      setPhase('idle');
+                      setDraws([]);
+                    }
                   }}
                   className="w-full py-3 rounded-xl bg-zinc-700 text-zinc-100 text-sm font-medium"
                 >

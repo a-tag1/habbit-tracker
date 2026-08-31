@@ -14,7 +14,11 @@ export function useCoin() {
   const persist = useCallback((next: GachaData) => {
     dataRef.current = next;
     setGachaData(next);
-    saveGachaData(next);
+    try {
+      saveGachaData(next);
+    } catch (e) {
+      console.error('[useCoin] データ保存失敗:', e);
+    }
   }, []);
 
   const earnCoins = useCallback((
