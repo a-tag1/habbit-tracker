@@ -150,6 +150,7 @@ function parseAppData(parsed: Partial<AppData>): AppData {
   return {
     tasks: Array.isArray(parsed.tasks) ? parsed.tasks : [],
     history: Array.isArray(parsed.history) ? parsed.history : [],
+    statsTaskOrder: Array.isArray(parsed.statsTaskOrder) ? parsed.statsTaskOrder : undefined,
   };
 }
 

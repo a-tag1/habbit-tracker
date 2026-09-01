@@ -52,6 +52,8 @@ function App() {
     getMemoForDate,
     setNumber,
     getNumberForDate,
+    statsTaskOrder,
+    setStatsTaskOrder,
     importAppData,
   } = useHabits()
   const {
@@ -127,7 +129,12 @@ function App() {
           />
         )}
         {currentView === 'statistics' && (
-          <StatisticsView tasks={tasks} history={history} />
+          <StatisticsView
+            tasks={tasks}
+            history={history}
+            statsTaskOrder={statsTaskOrder}
+            onStatsReorder={setStatsTaskOrder}
+          />
         )}
         {currentView === 'settings' && (
           <SettingsView

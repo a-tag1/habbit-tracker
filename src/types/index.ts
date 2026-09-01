@@ -27,6 +27,7 @@ export interface HistoryEntry {
 export interface AppData {
   tasks: Task[];
   history: HistoryEntry[];
+  statsTaskOrder?: string[];
 }
 
 export type AppView = 'daily' | 'statistics' | 'settings' | 'tasks' | 'gacha';

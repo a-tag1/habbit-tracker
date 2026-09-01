@@ -34,7 +34,8 @@ export function useHabits() {
   const deleteTask = useCallback((id: string) => {
     const tasks = data.tasks.filter(t => t.id !== id).map((t, i) => ({ ...t, order: i }));
     const history = data.history.filter(h => h.taskId !== id);
-    persist({ ...data, tasks, history });
+    const statsTaskOrder = (data.statsTaskOrder ?? []).filter(sid => sid !== id);
+    persist({ ...data, tasks, history, statsTaskOrder });
   }, [data, persist]);
 
   const reorderTasks = useCallback((tasks: Task[]) => {
@@ -74,7 +75,18 @@ export function useHabits() {
     persist(imported);
   }, [persist]);
 
+  const setStatsTaskOrder = useCallback((order: string[]) => {
+    persist({ ...data, statsTaskOrder: order });
+  }, [data, persist]);
+
   const sortedTasks = [...data.tasks].sort((a, b) => a.order - b.order);
+
+  // 統計タブ用の順序: 保存済み順 + 未登録タスクを末尾に追加
+  const stored = data.statsTaskOrder ?? [];
+  const existingIds = new Set(sortedTasks.map(t => t.id));
+  const filteredOrder = stored.filter(id => existingIds.has(id));
+  const newIds = sortedTasks.filter(t => !stored.includes(t.id)).map(t => t.id);
+  const statsTaskOrder = [...filteredOrder, ...newIds];
 
   return {
     tasks: sortedTasks,
@@ -90,6 +102,8 @@ export function useHabits() {
     getMemoForDate,
     setNumber,
     getNumberForDate,
+    statsTaskOrder,
+    setStatsTaskOrder,
     importAppData,
   };
 }
