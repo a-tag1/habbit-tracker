@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { AppData, Task, TaskStatus } from '../types';
-import { loadData, saveData, defaultAppData, createTask, upsertHistory } from '../utils/storage';
+import { loadData, saveData, defaultAppData, createTask, upsertHistory, upsertHistoryMemo, upsertHistoryNumber } from '../utils/storage';
 
 export function useHabits() {
   const [data, setData] = useState<AppData>(defaultAppData);
@@ -20,13 +20,13 @@ export function useHabits() {
     }
   }, []);
 
-  const addTask = useCallback((title: string, frequencyType: Task['frequencyType'], frequencyCount: number, icon?: string, weekDays?: number[], difficulty?: Task['difficulty']) => {
+  const addTask = useCallback((title: string, frequencyType: Task['frequencyType'], frequencyCount: number, icon?: string, weekDays?: number[], difficulty?: Task['difficulty'], memoEnabled?: boolean, numberEnabled?: boolean) => {
     const order = data.tasks.length;
-    const task = createTask(title, frequencyType, frequencyCount, order, icon, weekDays, difficulty);
+    const task = createTask(title, frequencyType, frequencyCount, order, icon, weekDays, difficulty, memoEnabled, numberEnabled);
     persist({ ...data, tasks: [...data.tasks, task] });
   }, [data, persist]);
 
-  const updateTask = useCallback((id: string, updates: Partial<Pick<Task, 'title' | 'frequencyType' | 'frequencyCount' | 'icon' | 'weekDays' | 'difficulty'>>) => {
+  const updateTask = useCallback((id: string, updates: Partial<Pick<Task, 'title' | 'frequencyType' | 'frequencyCount' | 'icon' | 'weekDays' | 'difficulty' | 'memoEnabled' | 'numberEnabled'>>) => {
     const tasks = data.tasks.map(t => t.id === id ? { ...t, ...updates } : t);
     persist({ ...data, tasks });
   }, [data, persist]);
@@ -52,6 +52,24 @@ export function useHabits() {
     return entry ? entry.status : 'pending';
   }, [data.history]);
 
+  const setMemo = useCallback((date: string, taskId: string, memo: string) => {
+    const history = upsertHistoryMemo(data.history, date, taskId, memo);
+    persist({ ...data, history });
+  }, [data, persist]);
+
+  const getMemoForDate = useCallback((date: string, taskId: string): string => {
+    return data.history.find(h => h.date === date && h.taskId === taskId)?.memo ?? '';
+  }, [data.history]);
+
+  const setNumber = useCallback((date: string, taskId: string, number: number | undefined) => {
+    const history = upsertHistoryNumber(data.history, date, taskId, number);
+    persist({ ...data, history });
+  }, [data, persist]);
+
+  const getNumberForDate = useCallback((date: string, taskId: string): number | undefined => {
+    return data.history.find(h => h.date === date && h.taskId === taskId)?.number;
+  }, [data.history]);
+
   const importAppData = useCallback((imported: AppData) => {
     persist(imported);
   }, [persist]);
@@ -68,6 +86,10 @@ export function useHabits() {
     reorderTasks,
     setStatus,
     getStatusForDate,
+    setMemo,
+    getMemoForDate,
+    setNumber,
+    getNumberForDate,
     importAppData,
   };
 }

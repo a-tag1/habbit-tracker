@@ -15,9 +15,13 @@ interface Props {
   lastCoinGain: number;
   gainKey: number;
   onNavigateGacha: () => void;
+  getMemo: (date: string, taskId: string) => string;
+  onMemoChange: (date: string, taskId: string, memo: string) => void;
+  getNumber: (date: string, taskId: string) => number | undefined;
+  onNumberChange: (date: string, taskId: string, number: number | undefined) => void;
 }
 
-export default function DailyView({ tasks, history, currentDate, onDateChange, onSetStatus, getStatus, coins, lastCoinGain, gainKey, onNavigateGacha }: Props) {
+export default function DailyView({ tasks, history, currentDate, onDateChange, onSetStatus, getStatus, coins, lastCoinGain, gainKey, onNavigateGacha, getMemo, onMemoChange, getNumber, onNumberChange }: Props) {
   const [slideDir, setSlideDir] = useState<'left' | 'right'>('right');
 
   const goNext = useCallback(() => {
@@ -158,6 +162,10 @@ export default function DailyView({ tasks, history, currentDate, onDateChange, o
                 dateStr={currentDate}
                 onComplete={handleComplete}
                 onSkip={handleSkip}
+                memo={getMemo(currentDate, task.id)}
+                number={getNumber(currentDate, task.id)}
+                onMemoChange={(taskId, memo) => onMemoChange(currentDate, taskId, memo)}
+                onNumberChange={(taskId, num) => onNumberChange(currentDate, taskId, num)}
               />
             ))
           )}

@@ -7,7 +7,7 @@ type Difficulty = Task['difficulty'];
 
 interface Props {
   task?: Task | null;
-  onSave: (title: string, frequencyType: FrequencyType, frequencyCount: number, icon?: string, weekDays?: number[], difficulty?: Difficulty) => void;
+  onSave: (title: string, frequencyType: FrequencyType, frequencyCount: number, icon?: string, weekDays?: number[], difficulty?: Difficulty, memoEnabled?: boolean, numberEnabled?: boolean) => void;
   onClose: () => void;
 }
 
@@ -26,6 +26,8 @@ export default function TaskModal({ task, onSave, onClose }: Props) {
   const [icon, setIcon] = useState<string | undefined>(task?.icon);
   const [weekDays, setWeekDays] = useState<number[]>(task?.weekDays ?? []);
   const [difficulty, setDifficulty] = useState<Difficulty>(task?.difficulty ?? 'normal');
+  const [memoEnabled, setMemoEnabled] = useState(task?.memoEnabled ?? false);
+  const [numberEnabled, setNumberEnabled] = useState(task?.numberEnabled ?? false);
 
   const toggleWeekDay = (day: number) => {
     setWeekDays(prev =>
@@ -41,6 +43,8 @@ export default function TaskModal({ task, onSave, onClose }: Props) {
       setIcon(task.icon);
       setWeekDays(task.weekDays ?? []);
       setDifficulty(task.difficulty ?? 'normal');
+      setMemoEnabled(task.memoEnabled ?? false);
+      setNumberEnabled(task.numberEnabled ?? false);
     }
   }, [task]);
 
@@ -49,7 +53,7 @@ export default function TaskModal({ task, onSave, onClose }: Props) {
     if (!trimmed) return;
     if (frequencyType === 'weekly' && weekDays.length === 0) return;
     const effectiveCount = frequencyType === 'weekly' ? weekDays.length : frequencyCount;
-    onSave(trimmed, frequencyType, effectiveCount, icon, frequencyType === 'weekly' ? weekDays : undefined, difficulty);
+    onSave(trimmed, frequencyType, effectiveCount, icon, frequencyType === 'weekly' ? weekDays : undefined, difficulty, memoEnabled, numberEnabled);
     onClose();
   };
 
@@ -192,6 +196,49 @@ export default function TaskModal({ task, onSave, onClose }: Props) {
           >
             ハード ★（+10🪙）
           </button>
+        </div>
+
+        {/* 追加機能 */}
+        <label className="block text-xs text-zinc-400 mb-2 font-medium">追加機能</label>
+        <div className="bg-zinc-800 rounded-xl divide-y divide-zinc-700 mb-6">
+          <div className="flex items-center justify-between px-4 py-3">
+            <div>
+              <p className="text-sm text-zinc-100">メモ</p>
+              <p className="text-xs text-zinc-500">タスクに自由記述メモを記録</p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={memoEnabled}
+              onClick={() => setMemoEnabled(v => !v)}
+              className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
+                memoEnabled ? 'bg-emerald-600' : 'bg-zinc-600'
+              }`}
+            >
+              <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                memoEnabled ? 'translate-x-6' : 'translate-x-1'
+              }`} />
+            </button>
+          </div>
+          <div className="flex items-center justify-between px-4 py-3">
+            <div>
+              <p className="text-sm text-zinc-100">数値入力</p>
+              <p className="text-xs text-zinc-500">タスクに数値を記録</p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={numberEnabled}
+              onClick={() => setNumberEnabled(v => !v)}
+              className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
+                numberEnabled ? 'bg-emerald-600' : 'bg-zinc-600'
+              }`}
+            >
+              <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                numberEnabled ? 'translate-x-6' : 'translate-x-1'
+              }`} />
+            </button>
+          </div>
         </div>
 
         <button

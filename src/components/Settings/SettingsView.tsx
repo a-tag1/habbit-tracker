@@ -285,7 +285,7 @@ export default function SettingsView({ data, onImport, theme, onThemeChange, ima
           <div className="border border-zinc-800 bg-zinc-900 rounded-2xl p-4 flex flex-col gap-2">
             <div className="flex justify-between text-sm">
               <span className="text-zinc-400">バージョン</span>
-              <span className="font-mono font-medium text-zinc-100">1.0.3</span>
+              <span className="font-mono font-medium text-zinc-100">1.0.4</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-zinc-400">アップデート日</span>

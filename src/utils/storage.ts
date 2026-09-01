@@ -210,7 +210,17 @@ export function generateId(): string {
   return `task_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
 }
 
-export function createTask(title: string, frequencyType: Task['frequencyType'], frequencyCount: number, order: number, icon?: string, weekDays?: number[], difficulty?: Task['difficulty']): Task {
+export function createTask(
+  title: string,
+  frequencyType: Task['frequencyType'],
+  frequencyCount: number,
+  order: number,
+  icon?: string,
+  weekDays?: number[],
+  difficulty?: Task['difficulty'],
+  memoEnabled?: boolean,
+  numberEnabled?: boolean,
+): Task {
   return {
     id: generateId(),
     title,
@@ -219,13 +229,32 @@ export function createTask(title: string, frequencyType: Task['frequencyType'], 
     frequencyCount,
     weekDays,
     difficulty,
+    memoEnabled,
+    numberEnabled,
     order,
     createdAt: new Date().toISOString(),
   };
 }
 
 export function upsertHistory(history: HistoryEntry[], date: string, taskId: string, status: HistoryEntry['status']): HistoryEntry[] {
+  const existing = history.find(h => h.date === date && h.taskId === taskId);
   const filtered = history.filter(h => !(h.date === date && h.taskId === taskId));
-  filtered.push({ date, taskId, status });
+  filtered.push({ ...existing, date, taskId, status });
+  return filtered;
+}
+
+export function upsertHistoryMemo(history: HistoryEntry[], date: string, taskId: string, memo: string): HistoryEntry[] {
+  const existing = history.find(h => h.date === date && h.taskId === taskId)
+    ?? { date, taskId, status: 'pending' as HistoryEntry['status'] };
+  const filtered = history.filter(h => !(h.date === date && h.taskId === taskId));
+  filtered.push({ ...existing, memo });
+  return filtered;
+}
+
+export function upsertHistoryNumber(history: HistoryEntry[], date: string, taskId: string, number: number | undefined): HistoryEntry[] {
+  const existing = history.find(h => h.date === date && h.taskId === taskId)
+    ?? { date, taskId, status: 'pending' as HistoryEntry['status'] };
+  const filtered = history.filter(h => !(h.date === date && h.taskId === taskId));
+  filtered.push({ ...existing, number });
   return filtered;
 }

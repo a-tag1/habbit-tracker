@@ -48,6 +48,10 @@ function App() {
     reorderTasks,
     setStatus,
     getStatusForDate,
+    setMemo,
+    getMemoForDate,
+    setNumber,
+    getNumberForDate,
     importAppData,
   } = useHabits()
   const {
@@ -107,6 +111,10 @@ function App() {
             lastCoinGain={lastCoinGain}
             gainKey={gainKey}
             onNavigateGacha={() => navigateTo('gacha')}
+            getMemo={getMemoForDate}
+            onMemoChange={setMemo}
+            getNumber={getNumberForDate}
+            onNumberChange={setNumber}
           />
         )}
         {currentView === 'tasks' && (
