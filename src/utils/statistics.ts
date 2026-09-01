@@ -86,3 +86,35 @@ export function getMonthlyStatistics(tasks: Task[], history: HistoryEntry[], mon
     return { taskId: task.id, title: task.title, completedCount, targetCount, achievementRate, dailyStatus };
   });
 }
+
+export interface TaskNumberStat {
+  taskId: string;
+  title: string;
+  avg: number | null;
+  max: number | null;
+  min: number | null;
+  count: number;
+}
+
+/** numberEnabled タスクの期間内 avg/max/min を返す */
+export function getNumberStatistics(tasks: Task[], history: HistoryEntry[], start: string, end: string): TaskNumberStat[] {
+  return tasks
+    .filter(t => t.numberEnabled)
+    .map(task => {
+      const values = history
+        .filter(h => h.taskId === task.id && isDateInRange(h.date, start, end) && h.number !== undefined)
+        .map(h => h.number!);
+      if (values.length === 0) {
+        return { taskId: task.id, title: task.title, avg: null, max: null, min: null, count: 0 };
+      }
+      const sum = values.reduce((a, b) => a + b, 0);
+      return {
+        taskId: task.id,
+        title: task.title,
+        avg: Math.round((sum / values.length) * 10) / 10,
+        max: Math.max(...values),
+        min: Math.min(...values),
+        count: values.length,
+      };
+    });
+}

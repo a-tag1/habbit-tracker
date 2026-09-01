@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { Task, HistoryEntry } from '../../types';
-import { getMonthlyStatistics } from '../../utils/statistics';
+import { getMonthlyStatistics, getNumberStatistics } from '../../utils/statistics';
+import { getMonthRange } from '../../utils/dateUtils';
 
 type RangeType = '1M' | '3M' | '6M';
 
@@ -60,6 +61,11 @@ export default function StatisticsView({ tasks, history }: Props) {
 
   const months = getMonthList(baseMonth, range);
   const colW = range === '6M' ? 'w-10' : 'w-12';
+
+  const rangeStart = months[0];
+  const rangeEnd = getMonthRange(baseMonth).end;
+  const numberStats = getNumberStatistics(tasks, history, rangeStart, rangeEnd);
+  const hasNumberTasks = numberStats.length > 0;
 
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
@@ -147,6 +153,40 @@ export default function StatisticsView({ tasks, history }: Props) {
                 </div>
               );
             })}
+
+            {/* 数値記録セクション */}
+            {hasNumberTasks && (
+              <div className="mt-4 mb-2">
+                <p className="text-xs font-medium text-zinc-500 mb-3 pt-2 border-t border-zinc-800">数値記録</p>
+                {numberStats.map(stat => (
+                  <div key={stat.taskId} className="bg-zinc-800/50 rounded-xl px-4 py-3 mb-2">
+                    <p className="text-sm font-medium text-zinc-200 mb-2 truncate">{stat.title}</p>
+                    {stat.count > 0 ? (
+                      <div className="flex items-end gap-5">
+                        <div className="text-center">
+                          <p className="text-xl font-mono font-semibold text-emerald-400 leading-tight">{stat.avg}</p>
+                          <p className="text-xs text-zinc-500 mt-0.5">平均</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-xl font-mono font-semibold text-zinc-100 leading-tight">{stat.max}</p>
+                          <p className="text-xs text-zinc-500 mt-0.5">最大</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-xl font-mono font-semibold text-zinc-100 leading-tight">{stat.min}</p>
+                          <p className="text-xs text-zinc-500 mt-0.5">最小</p>
+                        </div>
+                        <div className="ml-auto text-right">
+                          <p className="text-sm font-mono text-zinc-400 leading-tight">{stat.count}日</p>
+                          <p className="text-xs text-zinc-600 mt-0.5">記録</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-xs text-zinc-600">記録なし</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
