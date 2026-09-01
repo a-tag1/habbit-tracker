@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import './App.css'
 import { useHabits } from './hooks/useHabits'
 import { useTheme } from './hooks/useTheme'
@@ -6,7 +6,7 @@ import { useCoin } from './hooks/useCoin'
 import { toDateString } from './utils/dateUtils'
 import { getDayOfWeek } from './utils/dateUtils'
 import type { AppView, TaskStatus, ImageSettings } from './types'
-import { loadImageSettings, saveImageSettings } from './utils/storage'
+import { loadImageSettings, saveImageSettings, defaultImageSettings } from './utils/storage'
 import DailyView from './components/DailyView/DailyView'
 import TaskList from './components/TaskManager/TaskList'
 import StatisticsView from './components/Statistics/StatisticsView'
@@ -22,7 +22,10 @@ function App() {
   const [viewKey, setViewKey] = useState(0)
   const [currentDate, setCurrentDate] = useState(toDateString(new Date()))
   const { theme, setTheme } = useTheme()
-  const [imageSettings, setImageSettings] = useState<ImageSettings>(() => loadImageSettings())
+  const [imageSettings, setImageSettings] = useState<ImageSettings>(defaultImageSettings)
+  useEffect(() => {
+    loadImageSettings().then(s => setImageSettings(s))
+  }, [])
   const handleImageSettingsChange = useCallback((s: ImageSettings) => {
     setImageSettings(s)
     saveImageSettings(s)

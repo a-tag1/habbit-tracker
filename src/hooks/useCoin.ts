@@ -1,23 +1,32 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import type { GachaData, OwnedCard, CustomSeason } from '../types';
-import { loadGachaData, saveGachaData } from '../utils/storage';
+import { loadGachaData, saveGachaData, defaultGachaData } from '../utils/storage';
 import { generateSeasonCards } from '../utils/seasonGenerator';
 
 export function useCoin() {
-  const [gachaData, setGachaData] = useState<GachaData>(() => loadGachaData());
+  const [gachaData, setGachaData] = useState<GachaData>(defaultGachaData);
   const [lastCoinGain, setLastCoinGain] = useState(0);
   const [gainKey, setGainKey] = useState(0); // increment to re-trigger animation
 
   const dataRef = useRef(gachaData);
   dataRef.current = gachaData;
+  const loadedRef = useRef(false);
+
+  useEffect(() => {
+    loadGachaData().then(d => {
+      dataRef.current = d;
+      setGachaData(d);
+      loadedRef.current = true;
+    });
+  }, []);
 
   const persist = useCallback((next: GachaData) => {
     dataRef.current = next;
     setGachaData(next);
-    try {
-      saveGachaData(next);
-    } catch (e) {
-      console.error('[useCoin] データ保存失敗:', e);
+    if (loadedRef.current) {
+      saveGachaData(next).catch(e => {
+        console.error('[useCoin] データ保存失敗:', e);
+      });
     }
   }, []);
 

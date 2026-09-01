@@ -1,10 +1,53 @@
 import type { AppData, Task, HistoryEntry, GachaData, ImageSettings } from '../types';
 
+// ─── IndexedDB wrapper ──────────────────────────────────
+const DB_NAME = 'habit-tracker-db';
+const DB_VERSION = 1;
+const STORE_NAME = 'keyval';
+
+let dbPromise: Promise<IDBDatabase> | null = null;
+
+function getDB(): Promise<IDBDatabase> {
+  if (dbPromise) return dbPromise;
+  dbPromise = new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = (e) => {
+      const db = (e.target as IDBOpenDBRequest).result;
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        db.createObjectStore(STORE_NAME);
+      }
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => { dbPromise = null; reject(req.error); };
+  });
+  return dbPromise;
+}
+
+async function dbGet<T>(key: string): Promise<T | undefined> {
+  const db = await getDB();
+  return new Promise((resolve, reject) => {
+    const req = db.transaction(STORE_NAME, 'readonly').objectStore(STORE_NAME).get(key);
+    req.onsuccess = () => resolve(req.result as T | undefined);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function dbSet<T>(key: string, value: T): Promise<void> {
+  const db = await getDB();
+  return new Promise((resolve, reject) => {
+    const req = db.transaction(STORE_NAME, 'readwrite').objectStore(STORE_NAME).put(value, key);
+    req.onsuccess = () => resolve();
+    req.onerror = () => reject(req.error);
+  });
+}
+
+// ─── Keys ───────────────────────────────────────────────
 const STORAGE_KEY = 'habit-tracker-data';
 const GACHA_STORAGE_KEY = 'habit-tracker-gacha';
 const IMAGE_SETTINGS_KEY = 'habit-tracker-image-settings';
 
-const defaultImageSettings: ImageSettings = {
+// ─── Image Settings ─────────────────────────────────────
+export const defaultImageSettings: ImageSettings = {
   provider: 'pollinations',
   hfToken: '',
   hfModel: 'stabilityai/stable-diffusion-3-medium-diffusers/black-forest-labs/FLUX.1-schnell',
@@ -13,39 +56,51 @@ const defaultImageSettings: ImageSettings = {
   cfModel: '@cf/bytedance/stable-diffusion-xl-lightning',
 };
 
-export function loadImageSettings(): ImageSettings {
+function parseImageSettings(parsed: Partial<ImageSettings>): ImageSettings {
+  // FLUX.1-schnell は hf-inference で廃止済みのため SD3 へ移行
+  const rawModel = typeof parsed.hfModel === 'string' ? parsed.hfModel : 'stabilityai/stable-diffusion-3-medium-diffusers';
+  const hfModel = rawModel.startsWith('black-forest-labs/FLUX')
+    ? 'stabilityai/stable-diffusion-3-medium-diffusers'
+    : rawModel;
+  const validProviders = ['pollinations', 'huggingface', 'cloudflare'] as const;
+  const provider = validProviders.includes(parsed.provider as typeof validProviders[number])
+    ? (parsed.provider as typeof validProviders[number])
+    : 'pollinations';
+  return {
+    provider,
+    hfToken: typeof parsed.hfToken === 'string' ? parsed.hfToken : '',
+    hfModel,
+    cfAccountId: typeof parsed.cfAccountId === 'string' ? parsed.cfAccountId : '',
+    cfToken: typeof parsed.cfToken === 'string' ? parsed.cfToken : '',
+    cfModel: typeof parsed.cfModel === 'string' ? parsed.cfModel : defaultImageSettings.cfModel,
+    cfWorkerUrl: typeof parsed.cfWorkerUrl === 'string' ? parsed.cfWorkerUrl : '',
+  };
+}
+
+export async function loadImageSettings(): Promise<ImageSettings> {
   try {
-    const raw = localStorage.getItem(IMAGE_SETTINGS_KEY);
-    if (!raw) return defaultImageSettings;
-    const parsed = JSON.parse(raw) as Partial<ImageSettings>;
-    // FLUX.1-schnell は hf-inference で廃止済みのため SD3 へ移行
-    const rawModel = typeof parsed.hfModel === 'string' ? parsed.hfModel : 'stabilityai/stable-diffusion-3-medium-diffusers';
-    const hfModel = rawModel.startsWith('black-forest-labs/FLUX')
-      ? 'stabilityai/stable-diffusion-3-medium-diffusers'
-      : rawModel;
-    const validProviders = ['pollinations', 'huggingface', 'cloudflare'] as const;
-    const provider = validProviders.includes(parsed.provider as typeof validProviders[number])
-      ? (parsed.provider as typeof validProviders[number])
-      : 'pollinations';
-    return {
-      provider,
-      hfToken: typeof parsed.hfToken === 'string' ? parsed.hfToken : '',
-      hfModel,
-      cfAccountId: typeof parsed.cfAccountId === 'string' ? parsed.cfAccountId : '',
-      cfToken: typeof parsed.cfToken === 'string' ? parsed.cfToken : '',
-      cfModel: typeof parsed.cfModel === 'string' ? parsed.cfModel : defaultImageSettings.cfModel,
-      cfWorkerUrl: typeof parsed.cfWorkerUrl === 'string' ? parsed.cfWorkerUrl : '',
-    };
+    const stored = await dbGet<Partial<ImageSettings>>(IMAGE_SETTINGS_KEY);
+    if (stored !== undefined) return parseImageSettings(stored);
+    // localStorage からのマイグレーション
+    const lsRaw = localStorage.getItem(IMAGE_SETTINGS_KEY);
+    if (lsRaw) {
+      const settings = parseImageSettings(JSON.parse(lsRaw) as Partial<ImageSettings>);
+      await dbSet(IMAGE_SETTINGS_KEY, settings);
+      localStorage.removeItem(IMAGE_SETTINGS_KEY);
+      return settings;
+    }
+    return defaultImageSettings;
   } catch {
     return defaultImageSettings;
   }
 }
 
-export function saveImageSettings(settings: ImageSettings): void {
-  localStorage.setItem(IMAGE_SETTINGS_KEY, JSON.stringify(settings));
+export async function saveImageSettings(settings: ImageSettings): Promise<void> {
+  await dbSet(IMAGE_SETTINGS_KEY, settings);
 }
 
-const defaultGachaData: GachaData = {
+// ─── GachaData ───────────────────────────────────────────
+export const defaultGachaData: GachaData = {
   coins: 0,
   ownedCards: [],
   dailyBonuses: [],
@@ -53,48 +108,71 @@ const defaultGachaData: GachaData = {
   activeSeasonId: null,
 };
 
-export function loadGachaData(): GachaData {
+function parseGachaData(parsed: Partial<GachaData>): GachaData {
+  return {
+    coins: typeof parsed.coins === 'number' ? parsed.coins : 0,
+    ownedCards: Array.isArray(parsed.ownedCards) ? parsed.ownedCards : [],
+    dailyBonuses: Array.isArray(parsed.dailyBonuses) ? parsed.dailyBonuses : [],
+    customSeasons: Array.isArray(parsed.customSeasons) ? parsed.customSeasons : [],
+    activeSeasonId: parsed.activeSeasonId ?? null,
+  };
+}
+
+export async function loadGachaData(): Promise<GachaData> {
   try {
-    const raw = localStorage.getItem(GACHA_STORAGE_KEY);
-    if (!raw) return defaultGachaData;
-    const parsed = JSON.parse(raw) as Partial<GachaData>;
-    return {
-      coins: typeof parsed.coins === 'number' ? parsed.coins : 0,
-      ownedCards: Array.isArray(parsed.ownedCards) ? parsed.ownedCards : [],
-      dailyBonuses: Array.isArray(parsed.dailyBonuses) ? parsed.dailyBonuses : [],
-      customSeasons: Array.isArray(parsed.customSeasons) ? parsed.customSeasons : [],
-      activeSeasonId: parsed.activeSeasonId ?? null,
-    };
+    const stored = await dbGet<Partial<GachaData>>(GACHA_STORAGE_KEY);
+    if (stored !== undefined) return parseGachaData(stored);
+    // localStorage からのマイグレーション
+    const lsRaw = localStorage.getItem(GACHA_STORAGE_KEY);
+    if (lsRaw) {
+      const data = parseGachaData(JSON.parse(lsRaw) as Partial<GachaData>);
+      await dbSet(GACHA_STORAGE_KEY, data);
+      localStorage.removeItem(GACHA_STORAGE_KEY);
+      return data;
+    }
+    return defaultGachaData;
   } catch {
     return defaultGachaData;
   }
 }
 
-export function saveGachaData(data: GachaData): void {
-  localStorage.setItem(GACHA_STORAGE_KEY, JSON.stringify(data));
+export async function saveGachaData(data: GachaData): Promise<void> {
+  await dbSet(GACHA_STORAGE_KEY, data);
 }
 
-const defaultData: AppData = {
+// ─── AppData ─────────────────────────────────────────────
+export const defaultAppData: AppData = {
   tasks: [],
   history: [],
 };
 
-export function loadData(): AppData {
+function parseAppData(parsed: Partial<AppData>): AppData {
+  return {
+    tasks: Array.isArray(parsed.tasks) ? parsed.tasks : [],
+    history: Array.isArray(parsed.history) ? parsed.history : [],
+  };
+}
+
+export async function loadData(): Promise<AppData> {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return defaultData;
-    const parsed = JSON.parse(raw) as AppData;
-    return {
-      tasks: Array.isArray(parsed.tasks) ? parsed.tasks : [],
-      history: Array.isArray(parsed.history) ? parsed.history : [],
-    };
+    const stored = await dbGet<Partial<AppData>>(STORAGE_KEY);
+    if (stored !== undefined) return parseAppData(stored);
+    // localStorage からのマイグレーション
+    const lsRaw = localStorage.getItem(STORAGE_KEY);
+    if (lsRaw) {
+      const data = parseAppData(JSON.parse(lsRaw) as Partial<AppData>);
+      await dbSet(STORAGE_KEY, data);
+      localStorage.removeItem(STORAGE_KEY);
+      return data;
+    }
+    return defaultAppData;
   } catch {
-    return defaultData;
+    return defaultAppData;
   }
 }
 
-export function saveData(data: AppData): void {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+export async function saveData(data: AppData): Promise<void> {
+  await dbSet(STORAGE_KEY, data);
 }
 
 export function exportData(data: AppData): void {

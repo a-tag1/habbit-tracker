@@ -1,13 +1,23 @@
-import { useState, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import type { AppData, Task, TaskStatus } from '../types';
-import { loadData, saveData, createTask, upsertHistory } from '../utils/storage';
+import { loadData, saveData, defaultAppData, createTask, upsertHistory } from '../utils/storage';
 
 export function useHabits() {
-  const [data, setData] = useState<AppData>(() => loadData());
+  const [data, setData] = useState<AppData>(defaultAppData);
+  const loadedRef = useRef(false);
+
+  useEffect(() => {
+    loadData().then(d => {
+      setData(d);
+      loadedRef.current = true;
+    });
+  }, []);
 
   const persist = useCallback((next: AppData) => {
     setData(next);
-    saveData(next);
+    if (loadedRef.current) {
+      saveData(next);
+    }
   }, []);
 
   const addTask = useCallback((title: string, frequencyType: Task['frequencyType'], frequencyCount: number, icon?: string, weekDays?: number[], difficulty?: Task['difficulty']) => {
