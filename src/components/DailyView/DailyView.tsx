@@ -58,6 +58,7 @@ export default function DailyView({ tasks, history, currentDate, onDateChange, o
 
   const dayOfWeek = getDayOfWeek(currentDate);
   const visibleTasks = tasks.filter(task => {
+    if (task.paused) return false;
     if (task.frequencyType !== 'weekly') return true;
     if (!task.weekDays || task.weekDays.length === 0) return true;
     return task.weekDays.includes(dayOfWeek);
@@ -146,11 +147,11 @@ export default function DailyView({ tasks, history, currentDate, onDateChange, o
           key={currentDate}
           className={`px-4 py-1 flex flex-col min-h-full ${slideDir === 'right' ? 'slide-from-right' : 'slide-from-left'}`}
         >
-          {tasks.length === 0 ? (
+          {visibleTasks.length === 0 ? (
             <div className="flex flex-col items-center justify-center flex-1 text-zinc-600 text-sm gap-2 py-20">
               <span className="text-4xl">✦</span>
-              <p>タスクがまだありません</p>
-              <p className="text-xs">タスクメニューから追加してください</p>
+              <p>{tasks.length === 0 ? 'タスクがまだありません' : '表示するタスクがありません'}</p>
+              {tasks.length === 0 && <p className="text-xs">タスクメニューから追加してください</p>}
             </div>
           ) : (
             visibleTasks.map(task => (

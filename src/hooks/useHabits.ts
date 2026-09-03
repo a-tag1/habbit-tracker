@@ -26,7 +26,7 @@ export function useHabits() {
     persist({ ...data, tasks: [...data.tasks, task] });
   }, [data, persist]);
 
-  const updateTask = useCallback((id: string, updates: Partial<Pick<Task, 'title' | 'frequencyType' | 'frequencyCount' | 'icon' | 'weekDays' | 'difficulty' | 'memoEnabled' | 'numberEnabled'>>) => {
+  const updateTask = useCallback((id: string, updates: Partial<Pick<Task, 'title' | 'frequencyType' | 'frequencyCount' | 'icon' | 'weekDays' | 'difficulty' | 'memoEnabled' | 'numberEnabled' | 'paused'>>) => {
     const tasks = data.tasks.map(t => t.id === id ? { ...t, ...updates } : t);
     persist({ ...data, tasks });
   }, [data, persist]);

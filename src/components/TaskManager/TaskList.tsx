@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd';
+import { Pause, Play } from 'lucide-react';
 import type { Task } from '../../types';
 import TaskModal from './TaskModal';
 import { TASK_ICON_MAP } from '../../utils/taskIcons';
@@ -7,7 +8,7 @@ import { TASK_ICON_MAP } from '../../utils/taskIcons';
 interface Props {
   tasks: Task[];
   onAdd: (title: string, frequencyType: Task['frequencyType'], frequencyCount: number, icon?: string, weekDays?: number[], difficulty?: Task['difficulty'], memoEnabled?: boolean, numberEnabled?: boolean) => void;
-  onUpdate: (id: string, updates: Partial<Pick<Task, 'title' | 'frequencyType' | 'frequencyCount' | 'icon' | 'weekDays' | 'difficulty' | 'memoEnabled' | 'numberEnabled'>>) => void;
+  onUpdate: (id: string, updates: Partial<Pick<Task, 'title' | 'frequencyType' | 'frequencyCount' | 'icon' | 'weekDays' | 'difficulty' | 'memoEnabled' | 'numberEnabled' | 'paused'>>) => void;
   onDelete: (id: string) => void;
   onReorder: (tasks: Task[]) => void;
 }
@@ -44,6 +45,10 @@ export default function TaskList({ tasks, onAdd, onUpdate, onDelete, onReorder }
     if (window.confirm(`「${task.title}」を削除しますか？\n関連する履歴もすべて削除されます。`)) {
       onDelete(task.id);
     }
+  };
+
+  const handlePauseToggle = (task: Task) => {
+    onUpdate(task.id, { paused: !task.paused });
   };
 
   return (
@@ -96,7 +101,9 @@ export default function TaskList({ tasks, onAdd, onUpdate, onDelete, onReorder }
 
                           {/* タスク情報 */}
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium truncate text-zinc-100">{task.title}</p>
+                            <p className={`text-sm font-medium truncate ${task.paused ? 'text-zinc-500' : 'text-zinc-100'}`}>
+                              {task.title}{task.paused && '（保留中）'}
+                            </p>
                             <p className="text-xs text-zinc-500 mt-0.5">
                               {task.frequencyType === 'daily'
                                 ? '毎日'
@@ -111,6 +118,14 @@ export default function TaskList({ tasks, onAdd, onUpdate, onDelete, onReorder }
 
                           {/* 操作ボタン */}
                           <div className="flex gap-1 shrink-0">
+                            <button
+                              onClick={() => handlePauseToggle(task)}
+                              className="w-8 h-8 rounded-full flex items-center justify-center text-zinc-500 hover:bg-zinc-700"
+                              aria-label={task.paused ? 'タスクを再開' : 'タスクを保留'}
+                              title={task.paused ? '再開' : '保留'}
+                            >
+                              {task.paused ? <Play size={15} /> : <Pause size={15} />}
+                            </button>
                             <button
                               onClick={() => handleEdit(task)}
                               className="w-8 h-8 rounded-full flex items-center justify-center text-zinc-500 hover:bg-zinc-700 text-sm"

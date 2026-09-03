@@ -12,6 +12,7 @@ export interface Task {
   difficulty?: 'normal' | 'hard';
   memoEnabled?: boolean;
   numberEnabled?: boolean;
+  paused?: boolean;
   order: number;
   createdAt: string;
 }

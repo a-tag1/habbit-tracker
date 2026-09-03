@@ -80,6 +80,7 @@ function App() {
       const task = tasks.find(t => t.id === taskId)
       const dow = getDayOfWeek(date)
       const visibleTasks = tasks.filter(t => {
+        if (t.paused) return false
         if (t.frequencyType !== 'weekly') return true
         if (!t.weekDays || t.weekDays.length === 0) return true
         return t.weekDays.includes(dow)

@@ -71,16 +71,25 @@ export default function StatisticsView({ tasks, history, statsTaskOrder, onStats
 
   const sortedStatsTasks = statsTaskOrder
     .map(id => tasks.find(t => t.id === id))
-    .filter((t): t is Task => t !== undefined);
+    .filter((t): t is Task => t !== undefined)
+    .filter(task => !task.paused || history.some(entry =>
+      entry.taskId === task.id && entry.date >= rangeStart && entry.date <= rangeEnd
+    ));
 
   const numberStats = getNumberStatistics(sortedStatsTasks, history, rangeStart, rangeEnd);
   const hasNumberTasks = numberStats.length > 0;
 
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination) return;
-    const reordered = Array.from(statsTaskOrder);
-    const [removed] = reordered.splice(result.source.index, 1);
-    reordered.splice(result.destination.index, 0, removed);
+    const visibleIds = sortedStatsTasks.map(task => task.id);
+    const [movedId] = visibleIds.splice(result.source.index, 1);
+    visibleIds.splice(result.destination.index, 0, movedId);
+
+    let visibleIndex = 0;
+    const reordered = statsTaskOrder.map(id => {
+      if (!visibleIds.includes(id)) return id;
+      return visibleIds[visibleIndex++];
+    });
     onStatsReorder(reordered);
   };
 
@@ -181,21 +190,28 @@ export default function StatisticsView({ tasks, history, statsTaskOrder, onStats
                               <p className="flex-1 text-sm truncate mr-2 text-zinc-100">{task.title}</p>
                               {!reorderMode && (range === '1M' ? (
                                 <div className="flex items-center gap-2 shrink-0">
-                                  <span className="text-sm font-mono text-zinc-500">
-                                    {latest.completedCount}/{latest.targetCount}
-                                  </span>
-                                  <span className="text-sm font-mono font-semibold text-emerald-400">
-                                    {latest.achievementRate}%
-                                  </span>
+                                  {(!task.paused || history.some(entry => entry.taskId === task.id && entry.date >= latest.month.slice(0, 7) + '-01' && entry.date <= getMonthRange(latest.month).end)) && <>
+                                    <span className="text-sm font-mono text-zinc-500">
+                                      {latest.completedCount}/{latest.targetCount}
+                                    </span>
+                                    <span className="text-sm font-mono font-semibold text-emerald-400">
+                                      {latest.achievementRate}%
+                                    </span>
+                                  </>}
                                 </div>
                               ) : (
                                 monthStats.map((ms, i) => {
                                   const isLatest = i === monthStats.length - 1;
+                                  const hasHistory = !task.paused || history.some(entry =>
+                                    entry.taskId === task.id && entry.date >= ms.month.slice(0, 7) + '-01' && entry.date <= getMonthRange(ms.month).end
+                                  );
                                   return (
                                     <div key={ms.month} className={`${colW} text-center shrink-0`}>
-                                      <span className={`text-xs font-mono ${isLatest ? 'text-emerald-400' : 'text-zinc-500'}`}>
-                                        {ms.completedCount}/{ms.targetCount}
-                                      </span>
+                                      {hasHistory && (
+                                        <span className={`text-xs font-mono ${isLatest ? 'text-emerald-400' : 'text-zinc-500'}`}>
+                                          {ms.completedCount}/{ms.targetCount}
+                                        </span>
+                                      )}
                                     </div>
                                   );
                                 })
