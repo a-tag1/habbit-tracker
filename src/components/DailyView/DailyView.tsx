@@ -24,6 +24,16 @@ interface Props {
 export default function DailyView({ tasks, history, currentDate, onDateChange, onSetStatus, getStatus, coins, lastCoinGain, gainKey, onNavigateGacha, getMemo, onMemoChange, getNumber, onNumberChange }: Props) {
   const [slideDir, setSlideDir] = useState<'left' | 'right'>('right');
 
+  const getVisibleTasks = useCallback((date: string) => {
+    const dow = getDayOfWeek(date);
+    return tasks.filter(task => {
+      if (task.paused) return false;
+      if (task.frequencyType !== 'weekly') return true;
+      if (!task.weekDays || task.weekDays.length === 0) return true;
+      return task.weekDays.includes(dow);
+    });
+  }, [tasks]);
+
   const goNext = useCallback(() => {
     const next = addDays(currentDate, 1);
     if (!isFuture(next) || next === new Date().toISOString().slice(0, 10)) {
@@ -56,13 +66,7 @@ export default function DailyView({ tasks, history, currentDate, onDateChange, o
     onSetStatus(currentDate, task.id, next);
   }, [currentDate, getStatus, onSetStatus]);
 
-  const dayOfWeek = getDayOfWeek(currentDate);
-  const visibleTasks = tasks.filter(task => {
-    if (task.paused) return false;
-    if (task.frequencyType !== 'weekly') return true;
-    if (!task.weekDays || task.weekDays.length === 0) return true;
-    return task.weekDays.includes(dayOfWeek);
-  });
+  const visibleTasks = getVisibleTasks(currentDate);
 
   const completedCount = visibleTasks.filter(t => getStatus(currentDate, t.id) === 'completed').length;
   const totalCount = visibleTasks.length;
@@ -145,7 +149,7 @@ export default function DailyView({ tasks, history, currentDate, onDateChange, o
       <div className="flex-1 overflow-y-auto overflow-x-hidden">
         <div
           key={currentDate}
-          className={`px-4 py-1 flex flex-col min-h-full ${slideDir === 'right' ? 'slide-from-right' : 'slide-from-left'}`}
+          className={`px-4 py-1 flex flex-col min-h-full ${slideDir === 'right' ? 'view-in-right' : 'view-in-left'}`}
         >
           {visibleTasks.length === 0 ? (
             <div className="flex flex-col items-center justify-center flex-1 text-zinc-600 text-sm gap-2 py-20">
