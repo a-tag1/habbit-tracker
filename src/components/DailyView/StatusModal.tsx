@@ -8,9 +8,9 @@ interface Props {
 }
 
 const OPTIONS: { status: TaskStatus; label: string; icon: string }[] = [
-  { status: 'completed', label: '完了', icon: '✓' },
-  { status: 'pending', label: '未着手', icon: '○' },
+  { status: 'pending', label: '未完了', icon: '○' },
   { status: 'skipped', label: 'やらない', icon: '—' },
+  { status: 'completed', label: '完了', icon: '✓' },
 ];
 
 export default function StatusModal({ task, currentStatus, onSelect, onClose }: Props) {

@@ -21,6 +21,12 @@ interface Props {
   onNumberChange: (date: string, taskId: string, number: number | undefined) => void;
 }
 
+const STATUS_ORDER: Record<TaskStatus, number> = {
+  pending: 0,
+  skipped: 1,
+  completed: 2,
+};
+
 export default function DailyView({ tasks, history, currentDate, onDateChange, onSetStatus, getStatus, coins, lastCoinGain, gainKey, onNavigateGacha, getMemo, onMemoChange, getNumber, onNumberChange }: Props) {
   const [slideDir, setSlideDir] = useState<'left' | 'right'>('right');
 
@@ -66,7 +72,10 @@ export default function DailyView({ tasks, history, currentDate, onDateChange, o
     onSetStatus(currentDate, task.id, next);
   }, [currentDate, getStatus, onSetStatus]);
 
-  const visibleTasks = getVisibleTasks(currentDate);
+  const visibleTasks = getVisibleTasks(currentDate).sort((a, b) => {
+    const statusDiff = STATUS_ORDER[getStatus(currentDate, a.id)] - STATUS_ORDER[getStatus(currentDate, b.id)];
+    return statusDiff;
+  });
 
   const completedCount = visibleTasks.filter(t => getStatus(currentDate, t.id) === 'completed').length;
   const totalCount = visibleTasks.length;
