@@ -45,6 +45,7 @@ export default function StatisticsView({ tasks, history, statsTaskOrder, onStats
   const [range, setRange] = useState<RangeType>('1M');
   const [baseMonth, setBaseMonth] = useState(today);
   const [reorderMode, setReorderMode] = useState(false);
+  const [listMode, setListMode] = useState(false);
 
   const isCurrentMonth = baseMonth.slice(0, 7) === today.slice(0, 7);
 
@@ -78,6 +79,18 @@ export default function StatisticsView({ tasks, history, statsTaskOrder, onStats
 
   const numberStats = getNumberStatistics(sortedStatsTasks, history, rangeStart, rangeEnd);
   const hasNumberTasks = numberStats.length > 0;
+
+  const detailTasks = sortedStatsTasks
+    .map(task => ({
+      task,
+      entries: history
+        .filter(entry => entry.taskId === task.id && entry.date >= rangeStart && entry.date <= rangeEnd && (
+          (task.numberEnabled && entry.number !== undefined) ||
+          (task.memoEnabled && !!entry.memo?.trim())
+        ))
+        .sort((a, b) => b.date.localeCompare(a.date)),
+    }))
+    .filter(({ entries }) => entries.length > 0);
 
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination) return;
@@ -134,6 +147,19 @@ export default function StatisticsView({ tasks, history, statsTaskOrder, onStats
         >
           {reorderMode ? '完了' : '並替'}
         </button>
+        <button
+          onClick={() => {
+            setListMode(v => !v);
+            setReorderMode(false);
+          }}
+          className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
+            listMode
+              ? 'bg-emerald-600 text-white border-emerald-600'
+              : 'border-zinc-700 text-zinc-400 hover:text-zinc-200'
+          }`}
+        >
+          {listMode ? '統計' : '一覧'}
+        </button>
       </div>
 
       <div className="flex-1 overflow-y-auto">
@@ -144,6 +170,36 @@ export default function StatisticsView({ tasks, history, statsTaskOrder, onStats
           </div>
         ) : (
           <div className="px-4">
+            {listMode ? (
+              <div className="py-3">
+                {detailTasks.length === 0 ? (
+                  <p className="py-12 text-center text-sm text-zinc-600">記録がありません</p>
+                ) : (
+                  detailTasks.map(({ task, entries }) => (
+                    <section key={task.id} className="mb-5 last:mb-0">
+                      <h2 className="mb-2 text-sm font-medium text-zinc-200">{task.title}</h2>
+                      <div className="overflow-hidden rounded-xl border border-zinc-800">
+                        {entries.map(entry => (
+                          <div key={`${entry.taskId}-${entry.date}`} className="border-b border-zinc-800/80 px-3 py-2.5 last:border-0">
+                            <div className="flex items-start gap-3">
+                              <time className="w-20 shrink-0 pt-0.5 text-xs font-mono text-zinc-500">{entry.date}</time>
+                              <div className="min-w-0 flex-1">
+                                {task.numberEnabled && entry.number !== undefined && (
+                                  <p className="text-sm font-mono text-emerald-400">数値: {entry.number}</p>
+                                )}
+                                {task.memoEnabled && entry.memo?.trim() && (
+                                  <p className="whitespace-pre-wrap break-words text-sm text-zinc-300">{entry.memo}</p>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </section>
+                  ))
+                )}
+              </div>
+            ) : <>
             {/* 月ヘッダー行（3M/6Mのみ） */}
             {range !== '1M' && (
               <div className="flex items-center py-2 border-b border-zinc-700">
@@ -260,6 +316,7 @@ export default function StatisticsView({ tasks, history, statsTaskOrder, onStats
                 ))}
               </div>
             )}
+            </>}
           </div>
         )}
       </div>
