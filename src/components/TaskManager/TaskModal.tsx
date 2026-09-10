@@ -157,6 +157,7 @@ export default function TaskModal({ task, onSave, onClose }: Props) {
                 value={frequencyCount}
                 min={1}
                 max={31}
+                onFocus={e => e.target.select()}
                 onChange={e => {
                   const val = Math.min(31, Math.max(1, parseInt(e.target.value, 10) || 1));
                   setFrequencyCount(val);
