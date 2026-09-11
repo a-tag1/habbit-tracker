@@ -123,7 +123,10 @@ export default function TaskItem({ task, status, history, dateStr, onComplete, o
                 value={number ?? 0}
                 min={0}
                 onFocus={e => e.target.select()}
-                onChange={e => onNumberChange(task.id, Math.max(0, parseInt(e.target.value, 10) || 0))}
+                onChange={e => {
+                  const normalized = e.target.value.replace(/^0+(?=\d)/, '');
+                  onNumberChange(task.id, Math.max(0, parseInt(normalized, 10) || 0));
+                }}
                 className="w-20 text-center text-lg font-mono font-semibold text-zinc-100 bg-transparent border border-zinc-700 rounded-xl py-1 outline-none focus:border-emerald-500 transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               />
               <button

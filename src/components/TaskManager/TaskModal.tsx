@@ -159,7 +159,8 @@ export default function TaskModal({ task, onSave, onClose }: Props) {
                 max={31}
                 onFocus={e => e.target.select()}
                 onChange={e => {
-                  const val = Math.min(31, Math.max(1, parseInt(e.target.value, 10) || 1));
+                  const normalized = e.target.value.replace(/^0+(?=\d)/, '');
+                  const val = Math.min(31, Math.max(1, parseInt(normalized, 10) || 1));
                   setFrequencyCount(val);
                 }}
                 className="flex-1 text-center text-2xl font-mono font-semibold text-zinc-100 bg-transparent border border-zinc-700 rounded-xl py-1 outline-none focus:border-emerald-500 transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
