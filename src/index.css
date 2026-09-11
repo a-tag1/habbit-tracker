@@ -33,6 +33,16 @@ body {
   font-feature-settings: "palt";
 }
 
+/* iOS Safari は 16px 未満の入力欄にフォーカスすると自動ズームする */
+@media (max-width: 768px) {
+  input[type="text"],
+  input[type="password"],
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
+
 /* ── 日付スライドアニメーション ─────────── */
 /* 完全にオフスクリーンから入れることでスクロールとの誤認を防ぎ、スライド感を強調する */
 
