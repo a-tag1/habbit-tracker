@@ -265,7 +265,7 @@ export default function StatisticsView({ tasks, history, statsTaskOrder, onStats
                                     <div key={ms.month} className={`${colW} text-center shrink-0`}>
                                       {hasHistory && (
                                         <span className={`text-xs font-mono ${isLatest ? 'text-emerald-400' : 'text-zinc-500'}`}>
-                                          {ms.completedCount}/{ms.targetCount}
+                                          {ms.completedCount}
                                         </span>
                                       )}
                                     </div>
