@@ -29,8 +29,12 @@ export function getProgressCounter(task: Task, history: HistoryEntry[], dateStr:
   }
 
   if (task.frequencyType === 'monthly') {
-    const { start, end } = getMonthRange(dateStr);
-    return { current: getCompletedCount(history, task.id, start, end), target: task.frequencyCount };
+    const { start } = getMonthRange(dateStr);
+    const current = getCompletedCount(history, task.id, start, dateStr);
+    const monthDays = getDaysInMonth(dateStr).length;
+    const elapsedDays = getDaysElapsed(start, dateStr);
+    const target = monthDays > 0 ? Math.round((elapsedDays / monthDays) * task.frequencyCount) : 0;
+    return { current, target };
   }
 
   return null;
@@ -42,7 +46,7 @@ export interface TaskMonthStat {
   title: string;
   completedCount: number;
   targetCount: number;
-  achievementRate: number; // 0-100
+  achievementRate: number;
   dailyStatus: { date: string; status: 'completed' | 'skipped' | 'none' }[];
 }
 
@@ -73,7 +77,7 @@ export function getMonthlyStatistics(tasks: Task[], history: HistoryEntry[], mon
     }
 
     const completedCount = getCompletedCount(history, task.id, start, end);
-    const achievementRate = targetCount > 0 ? Math.min(100, Math.round((completedCount / targetCount) * 100)) : 0;
+    const achievementRate = targetCount > 0 ? Math.round((completedCount / targetCount) * 100) : 0;
 
     const dailyStatus = days.map(date => {
       const entry = history.find(h => h.taskId === task.id && h.date === date);

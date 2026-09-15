@@ -149,7 +149,7 @@ export default function DailyView({ tasks, history, currentDate, onDateChange, o
                 style={{ width: `${progress}%` }}
               />
             </div>
-            <span className="text-xs text-zinc-500 font-mono">{completedCount}/{totalCount}</span>
+            <span className="text-xs text-zinc-500 font-mono">{Math.round(progress)}%</span>
           </div>
         )}
       </div>

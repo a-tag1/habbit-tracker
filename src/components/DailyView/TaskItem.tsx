@@ -69,10 +69,11 @@ export default function TaskItem({ task, status, history, dateStr, onComplete, o
           )}
           <span className="font-medium truncate text-sm">{task.title}</span>
           {progress && (
-            <span className={`text-xs font-mono shrink-0 ml-auto ${
+            <span className={`text-xs font-mono shrink-0 ml-auto flex items-center gap-1 ${
               status === 'completed' ? 'text-emerald-600' : 'text-zinc-500'
             }`}>
-              {progress.current}/{progress.target}
+              <span>{progress.current}/{progress.target}</span>
+              <span className="text-[10px] opacity-80">{progress.target > 0 ? `${Math.round((progress.current / progress.target) * 100)}%` : '0%'}</span>
             </span>
           )}
         </button>
