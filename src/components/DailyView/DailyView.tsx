@@ -78,8 +78,11 @@ export default function DailyView({ tasks, history, currentDate, onDateChange, o
   });
 
   const completedCount = visibleTasks.filter(t => getStatus(currentDate, t.id) === 'completed').length;
+  const skippedCount = visibleTasks.filter(t => getStatus(currentDate, t.id) === 'skipped').length;
+  const pendingCount = visibleTasks.filter(t => getStatus(currentDate, t.id) === 'pending').length;
   const totalCount = visibleTasks.length;
-  const progress = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
+  const activeCount = totalCount - skippedCount;
+  const progress = activeCount > 0 ? (completedCount / activeCount) * 100 : 0;
 
   const isCurrentFuture = isFuture(currentDate);
 
@@ -142,14 +145,21 @@ export default function DailyView({ tasks, history, currentDate, onDateChange, o
 
         {/* 進捗バー */}
         {totalCount > 0 && (
-          <div className="flex items-center gap-2">
-            <div className="flex-1 h-1 bg-zinc-800 rounded-full overflow-hidden">
+          <div className="space-y-1.5 mt-1">
+            <div className="flex items-center justify-between text-xs font-mono">
+              <div className="flex items-center gap-3">
+                <span className="text-emerald-400">Done:{completedCount}</span>
+                <span className="text-zinc-300">Pend:{pendingCount}</span>
+                <span className="text-zinc-500">Skip:{skippedCount}</span>
+              </div>
+              <span className="text-zinc-400 font-medium">{Math.round(progress)}%</span>
+            </div>
+            <div className="h-1 bg-zinc-800 rounded-full overflow-hidden">
               <div
                 className="h-full bg-emerald-500 rounded-full transition-all duration-300"
                 style={{ width: `${progress}%` }}
               />
             </div>
-            <span className="text-xs text-zinc-500 font-mono">{Math.round(progress)}%</span>
           </div>
         )}
       </div>
