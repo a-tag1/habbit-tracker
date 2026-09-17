@@ -36,6 +36,7 @@ export default function TaskItem({ task, status, history, dateStr, onComplete, o
   const [justCompleted, setJustCompleted] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const hasDetail = task.memoEnabled || task.numberEnabled;
+  const memoPreview = memo.trim() ? memo.trim().length > 28 ? `${memo.trim().slice(0, 28).trimEnd()}…` : memo.trim() : '';
 
   useEffect(() => {
     if (prevStatus.current !== 'completed' && status === 'completed') {
@@ -106,6 +107,23 @@ export default function TaskItem({ task, status, history, dateStr, onComplete, o
           <span className="text-sm">✕</span>
         </button>
       </div>
+
+      {!expanded && hasDetail && (
+        <div className="px-4 pb-2 flex flex-col gap-1 text-[10px] text-zinc-500/80">
+          {task.numberEnabled && number !== undefined && (
+            <div className="flex items-center gap-2">
+              <span className="w-8 text-zinc-400">数値</span>
+              <span className="font-mono text-zinc-500">{number}</span>
+            </div>
+          )}
+          {task.memoEnabled && memoPreview && (
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="w-8 shrink-0 text-zinc-400">メモ</span>
+              <span className="truncate min-w-0 text-zinc-500">{memoPreview}</span>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* 詳細パネル */}
       {hasDetail && expanded && (
