@@ -102,6 +102,12 @@ body {
   --app-bg: #27272a;
   --nav-bg: #09090b;
   --app-color: #f4f4f5;
+  --text-primary: #f4f4f5;
+  --text-secondary: #d4d4d8;
+  --text-muted: #a1a1aa;
+  --panel-bg: #18181b;
+  --panel-bg-soft: #27272a;
+  --panel-border: #3f3f46;
   --task-complete-bg: rgb(59 130 246 / 0.28);
 
   /* emerald → blue */
@@ -123,18 +129,24 @@ body {
   --app-bg: #ffffff;
   --nav-bg: #1e3a5f;
   --app-color: #18181b;
+  --text-primary: #18181b;
+  --text-secondary: #3f3f46;
+  --text-muted: #52525b;
+  --panel-bg: #f5f5f5;
+  --panel-bg-soft: #ffffff;
+  --panel-border: #d4d4d8;
 
-  /* zinc: 暗 → 明へ反転 */
+  /* 白背景では「やや濃い灰」へ寄せて、薄い文字が埋もれないように調整 */
   --color-zinc-50:  oklch(0.145 0.004 285.823);
-  --color-zinc-100: oklch(0.210 0.006 285.885);
-  --color-zinc-200: oklch(0.274 0.006 286.033);
-  --color-zinc-300: oklch(0.370 0.013 285.805);
-  --color-zinc-400: oklch(0.442 0.017 285.786);
-  --color-zinc-500: oklch(0.552 0.016 285.938);
-  --color-zinc-600: oklch(0.705 0.015 286.067);
-  --color-zinc-700: oklch(0.871 0.006 286.286);
-  --color-zinc-800: oklch(0.920 0.004 286.320);
-  --color-zinc-900: oklch(1.000 0     0      );
+  --color-zinc-100: oklch(0.192 0.006 285.885);
+  --color-zinc-200: oklch(0.245 0.006 286.033);
+  --color-zinc-300: oklch(0.310 0.013 285.805);
+  --color-zinc-400: oklch(0.390 0.017 285.786);
+  --color-zinc-500: oklch(0.500 0.016 285.938);
+  --color-zinc-600: oklch(0.585 0.015 286.067);
+  --color-zinc-700: oklch(0.680 0.012 286.286);
+  --color-zinc-800: oklch(0.790 0.009 286.320);
+  --color-zinc-900: oklch(0.920 0.004 286.320);
   --color-zinc-950: oklch(0.985 0.002 247.839);
 
   /* emerald: bg-emerald-950（完了タスク背景）を薄緑へ */
@@ -185,74 +197,263 @@ body {
   --color-emerald-950: oklch(0.282 0.091 267.935);
 }
 
+/* ホワイトテーマ */
+[data-theme="white"] {
+  --app-bg: #ffffff;
+  --nav-bg: #1e3a5f;
+  --app-color: #111827;
+  --text-primary: #111827;
+  --text-secondary: #1f2937;
+  --text-muted: #374151;
+  --panel-bg: #f5f5f5;
+  --panel-bg-soft: #ffffff;
+  --panel-border: #d4d4d8;
+
+  --color-zinc-50:  oklch(0.145 0.004 285.823);
+  --color-zinc-100: oklch(0.192 0.006 285.885);
+  --color-zinc-200: oklch(0.245 0.006 286.033);
+  --color-zinc-300: oklch(0.310 0.013 285.805);
+  --color-zinc-400: oklch(0.390 0.017 285.786);
+  --color-zinc-500: oklch(0.500 0.016 285.938);
+  --color-zinc-600: oklch(0.585 0.015 286.067);
+  --color-zinc-700: oklch(0.680 0.012 286.286);
+  --color-zinc-800: oklch(0.790 0.009 286.320);
+  --color-zinc-900: oklch(0.920 0.004 286.320);
+  --color-zinc-950: oklch(0.985 0.002 247.839);
+
+  --color-emerald-950: oklch(0.979 0.021 166.113);
+  --color-emerald-800: oklch(0.905 0.093 164.150);
+  --color-emerald-700: oklch(0.845 0.143 164.978);
+  --color-emerald-600: oklch(0.596 0.145 163.225);
+  --color-emerald-500: oklch(0.696 0.170 162.480);
+  --color-emerald-400: oklch(0.508 0.118 165.612);
+  --color-emerald-300: oklch(0.432 0.095 166.913);
+
+  --color-amber-950: oklch(0.987 0.022  95.277);
+  --color-amber-800: oklch(0.924 0.120  95.746);
+  --color-amber-500: oklch(0.555 0.163  48.998);
+}
+
+[data-theme="white"] .nav-surface,
+[data-theme="white"] .nav-surface * {
+  color: #e2e8f0 !important;
+}
+
+[data-theme="white"] .text-zinc-100,
+[data-theme="white"] .text-zinc-200 {
+  color: #111827 !important;
+}
+
+[data-theme="white"] .text-zinc-300,
+[data-theme="white"] .text-zinc-400 {
+  color: #374151 !important;
+}
+
+[data-theme="white"] .text-zinc-500,
+[data-theme="white"] .text-zinc-600 {
+  color: #4b5563 !important;
+}
+
+[data-theme="white"] .text-zinc-700,
+[data-theme="white"] .text-zinc-800,
+[data-theme="white"] .text-zinc-900,
+[data-theme="white"] .text-zinc-950,
+[data-theme="white"] .text-zinc-50 {
+  color: #6b7280 !important;
+}
+
+[data-theme="white"] .nav-surface .text-zinc-100,
+[data-theme="white"] .nav-surface .text-zinc-200,
+[data-theme="white"] .nav-surface .text-zinc-300,
+[data-theme="white"] .nav-surface .text-zinc-400,
+[data-theme="white"] .nav-surface .text-zinc-500,
+[data-theme="white"] .nav-surface .text-zinc-600,
+[data-theme="white"] .nav-surface .text-zinc-700,
+[data-theme="white"] .nav-surface .text-zinc-800,
+[data-theme="white"] .nav-surface .text-zinc-900,
+[data-theme="white"] .nav-surface .text-zinc-950,
+[data-theme="white"] .nav-surface .text-zinc-50 {
+  color: #e2e8f0 !important;
+}
+
+[data-theme="white"] .nav-surface .text-emerald-400 {
+  color: #6ee7b7 !important;
+}
+
+[data-theme="white"] .nav-surface .text-zinc-300 {
+  color: #bfdbfe !important;
+}
+
+[data-theme="white"] .nav-surface .text-zinc-500 {
+  color: #cbd5e1 !important;
+}
+
 /* ホワイト×ブルーテーマ：白背景＋青アクセント */
 [data-theme="white-blue"] {
   --app-bg: #ffffff;
   --nav-bg: #1e3a8a;
-  --app-color: #18181b;
+  --app-color: #111827;
+  --text-primary: #111827;
+  --text-secondary: #1e3a8a;
+  --text-muted: #334155;
+  --panel-bg: #f8fbff;
+  --panel-bg-soft: #ffffff;
+  --panel-border: #bfdbfe;
   --task-complete-bg: rgb(59 130 246 / 0.20);
 
-  /* zinc: dark→light（white テーマと同じ） */
   --color-zinc-50:  oklch(0.145 0.004 285.823);
-  --color-zinc-100: oklch(0.210 0.006 285.885);
-  --color-zinc-200: oklch(0.274 0.006 286.033);
-  --color-zinc-300: oklch(0.370 0.013 285.805);
-  --color-zinc-400: oklch(0.442 0.017 285.786);
-  --color-zinc-500: oklch(0.552 0.016 285.938);
-  --color-zinc-600: oklch(0.705 0.015 286.067);
-  --color-zinc-700: oklch(0.871 0.006 286.286);
-  --color-zinc-800: oklch(0.920 0.004 286.320);
-  --color-zinc-900: oklch(1.000 0     0      );
+  --color-zinc-100: oklch(0.192 0.006 285.885);
+  --color-zinc-200: oklch(0.245 0.006 286.033);
+  --color-zinc-300: oklch(0.310 0.013 285.805);
+  --color-zinc-400: oklch(0.390 0.017 285.786);
+  --color-zinc-500: oklch(0.500 0.016 285.938);
+  --color-zinc-600: oklch(0.585 0.015 286.067);
+  --color-zinc-700: oklch(0.680 0.012 286.286);
+  --color-zinc-800: oklch(0.790 0.009 286.320);
+  --color-zinc-900: oklch(0.920 0.004 286.320);
   --color-zinc-950: oklch(0.985 0.002 247.839);
+}
 
-  /* emerald → blue（白背景向けに明度調整） */
-  --color-emerald-950: oklch(0.970 0.014 237.273); /* ≈ blue-50  薄青タスク背景 */
-  --color-emerald-800: oklch(0.882 0.059 254.128); /* ≈ blue-200 淡いボーダー */
-  --color-emerald-700: oklch(0.809 0.105 251.813); /* ≈ blue-300 */
-  --color-emerald-600: oklch(0.546 0.245 262.881); /* ≈ blue-600 ボタン用 */
-  --color-emerald-500: oklch(0.623 0.214 259.815); /* ≈ blue-500 進捗バー */
-  --color-emerald-400: oklch(0.488 0.243 264.376); /* ≈ blue-700 白bg上で視認性確保 */
-  --color-emerald-300: oklch(0.424 0.199 265.638); /* ≈ blue-800 完了テキスト */
+[data-theme="white-blue"] .nav-surface,
+[data-theme="white-blue"] .nav-surface * {
+  color: #e2e8f0 !important;
+}
 
-  /* amber: white テーマと同じ */
-  --color-amber-950: oklch(0.987 0.022  95.277);
-  --color-amber-800: oklch(0.924 0.120  95.746);
-  --color-amber-500: oklch(0.555 0.163  48.998);
+[data-theme="white-blue"] .nav-surface {
+  --app-color: #e2e8f0;
+}
+
+[data-theme="white-blue"] .text-zinc-100,
+[data-theme="white-blue"] .text-zinc-200 {
+  color: #111827 !important;
+}
+
+[data-theme="white-blue"] .text-zinc-300,
+[data-theme="white-blue"] .text-zinc-400 {
+  color: #1f3a5f !important;
+}
+
+[data-theme="white-blue"] .text-zinc-500,
+[data-theme="white-blue"] .text-zinc-600 {
+  color: #334155 !important;
+}
+
+[data-theme="white-blue"] .text-zinc-700,
+[data-theme="white-blue"] .text-zinc-800,
+[data-theme="white-blue"] .text-zinc-900,
+[data-theme="white-blue"] .text-zinc-950,
+[data-theme="white-blue"] .text-zinc-50 {
+  color: #475569 !important;
+}
+
+[data-theme="white-blue"] .nav-surface .text-zinc-100,
+[data-theme="white-blue"] .nav-surface .text-zinc-200,
+[data-theme="white-blue"] .nav-surface .text-zinc-300,
+[data-theme="white-blue"] .nav-surface .text-zinc-400,
+[data-theme="white-blue"] .nav-surface .text-zinc-500,
+[data-theme="white-blue"] .nav-surface .text-zinc-600,
+[data-theme="white-blue"] .nav-surface .text-zinc-700,
+[data-theme="white-blue"] .nav-surface .text-zinc-800,
+[data-theme="white-blue"] .nav-surface .text-zinc-900,
+[data-theme="white-blue"] .nav-surface .text-zinc-950,
+[data-theme="white-blue"] .nav-surface .text-zinc-50 {
+  color: #e2e8f0 !important;
+}
+
+[data-theme="white-blue"] .nav-surface .text-emerald-400 {
+  color: #6ee7b7 !important;
+}
+
+[data-theme="white-blue"] .nav-surface .text-zinc-300 {
+  color: #bfdbfe !important;
+}
+
+[data-theme="white-blue"] .nav-surface .text-zinc-500 {
+  color: #cbd5e1 !important;
 }
 
 /* その他テーマ：白背景＋青アクセント */
 [data-theme="sonota-theme"] {
   --app-bg: #ffffff;
   --nav-bg: #1f2937;
-  --app-color: #18181b;
+  --app-color: #111827;
+  --text-primary: #111827;
+  --text-secondary: #374151;
+  --text-muted: #4b5563;
+  --panel-bg: #f8fafc;
+  --panel-bg-soft: #ffffff;
+  --panel-border: #dbeafe;
   --task-complete-bg: rgb(59 130 246 / 0.20);
 
-  /* zinc: dark→light（white テーマと同じ） */
   --color-zinc-50:  oklch(0.145 0.004 285.823);
-  --color-zinc-100: oklch(0.210 0.006 285.885);
-  --color-zinc-200: oklch(0.274 0.006 286.033);
-  --color-zinc-300: oklch(0.370 0.013 285.805);
-  --color-zinc-400: oklch(0.442 0.017 285.786);
-  --color-zinc-500: oklch(0.552 0.016 285.938);
-  --color-zinc-600: oklch(0.705 0.015 286.067);
-  --color-zinc-700: oklch(0.871 0.006 286.286);
-  --color-zinc-800: oklch(0.920 0.004 286.320);
-  --color-zinc-900: oklch(1.000 0     0      );
+  --color-zinc-100: oklch(0.192 0.006 285.885);
+  --color-zinc-200: oklch(0.245 0.006 286.033);
+  --color-zinc-300: oklch(0.310 0.013 285.805);
+  --color-zinc-400: oklch(0.390 0.017 285.786);
+  --color-zinc-500: oklch(0.500 0.016 285.938);
+  --color-zinc-600: oklch(0.585 0.015 286.067);
+  --color-zinc-700: oklch(0.680 0.012 286.286);
+  --color-zinc-800: oklch(0.790 0.009 286.320);
+  --color-zinc-900: oklch(0.920 0.004 286.320);
   --color-zinc-950: oklch(0.985 0.002 247.839);
+}
 
-  /* emerald → blue（白背景向けに明度調整） */
-  --color-emerald-950: oklch(0.970 0.014 237.273); /* ≈ blue-50  薄青タスク背景 */
-  --color-emerald-800: oklch(94.511% 0.08725 155.473); /* ≈ blue-200 淡いボーダー */
-  --color-emerald-700: oklch(72.539% 0.11445 11.277); /* ≈ blue-300 */
-  --color-emerald-600: oklch(53.611% 0.20576 18.4); /* ≈ blue-600 ボタン用 */
-  --color-emerald-500: oklch(57.298% 0.17052 145.972); /* ≈ blue-500 進捗バー */
-  --color-emerald-400: oklch(43.124% 0.28061 266.512); /* ≈ blue-700 白bg上で視認性確保 */
-  --color-emerald-300: oklch(23.546% 0.12584 267.875); /* ≈ blue-800 完了テキスト */
+[data-theme="sonota-theme"] .nav-surface,
+[data-theme="sonota-theme"] .nav-surface * {
+  color: #e2e8f0 !important;
+}
 
-  /* amber: white テーマと同じ */
-  --color-amber-950: oklch(0.987 0.022  95.277);
-  --color-amber-800: oklch(0.924 0.120  95.746);
-  --color-amber-500: oklch(0.555 0.163  48.998);
+[data-theme="sonota-theme"] .nav-surface {
+  --app-color: #e2e8f0;
+}
+
+[data-theme="sonota-theme"] .text-zinc-100,
+[data-theme="sonota-theme"] .text-zinc-200 {
+  color: #111827 !important;
+}
+
+[data-theme="sonota-theme"] .text-zinc-300,
+[data-theme="sonota-theme"] .text-zinc-400 {
+  color: #374151 !important;
+}
+
+[data-theme="sonota-theme"] .text-zinc-500,
+[data-theme="sonota-theme"] .text-zinc-600 {
+  color: #4b5563 !important;
+}
+
+[data-theme="sonota-theme"] .text-zinc-700,
+[data-theme="sonota-theme"] .text-zinc-800,
+[data-theme="sonota-theme"] .text-zinc-900,
+[data-theme="sonota-theme"] .text-zinc-950,
+[data-theme="sonota-theme"] .text-zinc-50 {
+  color: #6b7280 !important;
+}
+
+[data-theme="sonota-theme"] .nav-surface .text-zinc-100,
+[data-theme="sonota-theme"] .nav-surface .text-zinc-200,
+[data-theme="sonota-theme"] .nav-surface .text-zinc-300,
+[data-theme="sonota-theme"] .nav-surface .text-zinc-400,
+[data-theme="sonota-theme"] .nav-surface .text-zinc-500,
+[data-theme="sonota-theme"] .nav-surface .text-zinc-600,
+[data-theme="sonota-theme"] .nav-surface .text-zinc-700,
+[data-theme="sonota-theme"] .nav-surface .text-zinc-800,
+[data-theme="sonota-theme"] .nav-surface .text-zinc-900,
+[data-theme="sonota-theme"] .nav-surface .text-zinc-950,
+[data-theme="sonota-theme"] .nav-surface .text-zinc-50 {
+  color: #e2e8f0 !important;
+}
+
+[data-theme="sonota-theme"] .nav-surface .text-emerald-400 {
+  color: #6ee7b7 !important;
+}
+
+[data-theme="sonota-theme"] .nav-surface .text-zinc-300 {
+  color: #bfdbfe !important;
+}
+
+[data-theme="sonota-theme"] .nav-surface .text-zinc-500 {
+  color: #cbd5e1 !important;
 }
 
 #root {

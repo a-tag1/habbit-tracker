@@ -61,13 +61,13 @@ export default function SettingsView({ data, onImport, theme, onThemeChange, ima
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
       <div className="nav-surface px-4 pt-4 pb-3 border-b border-zinc-800">
-        <h1 className="font-semibold text-base text-zinc-100">設定</h1>
+        <h1 className="font-semibold text-base text-[color:var(--text-primary)]">設定</h1>
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-4">
         {/* テーマ選択 */}
         <section>
-          <h2 className="text-xs text-zinc-500 font-medium uppercase tracking-wider mb-3">テーマ</h2>
+          <h2 className="text-xs text-[color:var(--text-muted)] font-medium uppercase tracking-wider mb-3">テーマ</h2>
           <div className="flex gap-3">
             {THEME_OPTIONS.map(t => {
               const selected = theme === t.key;
@@ -285,7 +285,7 @@ export default function SettingsView({ data, onImport, theme, onThemeChange, ima
           <div className="border border-zinc-800 bg-zinc-900 rounded-2xl p-4 flex flex-col gap-2">
             <div className="flex justify-between text-sm">
               <span className="text-zinc-400">バージョン</span>
-              <span className="font-mono font-medium text-zinc-100">1.0.13</span>
+              <span className="font-mono font-medium text-zinc-100">1.0.14</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-zinc-400">アップデート日</span>
