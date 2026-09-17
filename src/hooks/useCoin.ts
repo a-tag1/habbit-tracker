@@ -33,6 +33,7 @@ export function useCoin() {
   const earnCoins = useCallback((
     date: string,
     completedCount: number,
+    skippedCount: number,
     totalCount: number,
     isHard: boolean,
   ) => {
@@ -53,7 +54,7 @@ export function useCoin() {
       delta += 20;
       existing.bonus10 = true;
     }
-    if (totalCount > 0 && completedCount >= totalCount && !existing.complete) {
+    if (totalCount > 0 && completedCount + skippedCount >= totalCount && !existing.complete) {
       delta += 20;
       existing.complete = true;
     }
