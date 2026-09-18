@@ -95,15 +95,74 @@ async function buildImageUrlCF(
   });
 }
 
+interface AIHordeStatus {
+  state?: 'requested' | 'processing' | 'done' | 'cancelled' | 'faulted';
+  generations?: Array<{ img?: string }>;
+}
+
+async function buildImageUrlAIHorde(
+  prompt: string,
+  seed: number,
+  apiKey: string,
+  model: string,
+): Promise<string> {
+  const fullPrompt = `${prompt}, masterpiece, anime style, trading card format`;
+  const headers = {
+    'Content-Type': 'application/json',
+    apikey: apiKey || '0000000000',
+    'Client-Agent': 'habit-tracker:1.0',
+  };
+  const submitResponse = await fetch('https://aihorde.net/api/v2/generate/async', {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({
+      prompt: fullPrompt,
+      models: [model],
+      params: {
+        width: 512,
+        height: 768,
+        steps: 25,
+        n: 1,
+        seed: String(seed % 2147483647),
+        sampler_name: 'k_euler',
+        cfg_scale: 7,
+      },
+    }),
+  });
+  if (!submitResponse.ok) throw new Error(`AI Horde submit ${submitResponse.status}`);
+
+  const job = await submitResponse.json() as { id?: string };
+  if (!job.id) throw new Error('AI Horde did not return a job id');
+
+  for (let attempt = 0; attempt < 45; attempt += 1) {
+    await new Promise(resolve => setTimeout(resolve, 4000));
+    const statusResponse = await fetch(`https://aihorde.net/api/v2/generate/status/${job.id}`, { headers });
+    if (!statusResponse.ok) throw new Error(`AI Horde status ${statusResponse.status}`);
+    const status = await statusResponse.json() as AIHordeStatus;
+    if (status.state === 'done') {
+      const image = status.generations?.[0]?.img;
+      if (!image) throw new Error('AI Horde returned no image');
+      return image;
+    }
+    if (status.state === 'cancelled' || status.state === 'faulted') {
+      throw new Error(`AI Horde generation ${status.state}`);
+    }
+  }
+
+  throw new Error('AI Horde generation timed out');
+}
+
 // --------------------------------------------------------------------------
 // ImageConfig 型の拡張
 // --------------------------------------------------------------------------
 export interface ImageConfig {
-  provider: 'pollinations' | 'huggingface' | 'cloudflare';
+  provider: 'pollinations' | 'huggingface' | 'cloudflare' | 'aihorde';
   hfToken?: string;
   hfModel?: string;
   cfWorkerUrl?: string;
   cfModel?: string;
+  aihordeKey?: string;
+  aihordeModel?: string;
 }
 
 const DEFAULT_HF_MODEL = 'stabilityai/stable-diffusion-3-medium-diffusers';
@@ -132,6 +191,18 @@ async function resolveImageUrl(prompt: string, seed: number, config?: ImageConfi
       return { url, generatedBy: { provider: 'CF Workers AI', model } };
     } catch {
       // 失敗時は pollinations へフォールバック
+      const url = buildImageUrl(prompt, seed);
+      return { url, generatedBy: { provider: 'Pollinations.AI', model: 'flux' } };
+    }
+  }
+
+  // AI Horde選択時（無料・非同期キュー）
+  if (config?.provider === 'aihorde') {
+    const model = config.aihordeModel ?? 'Deliberate';
+    try {
+      const url = await buildImageUrlAIHorde(prompt, seed, config.aihordeKey ?? '0000000000', model);
+      return { url, generatedBy: { provider: 'AI Horde', model } };
+    } catch {
       const url = buildImageUrl(prompt, seed);
       return { url, generatedBy: { provider: 'Pollinations.AI', model: 'flux' } };
     }

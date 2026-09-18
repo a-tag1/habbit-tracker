@@ -118,9 +118,9 @@ export default function SettingsView({ data, onImport, theme, onThemeChange, ima
         <section>
           <h2 className="text-xs text-zinc-500 font-medium uppercase tracking-wider mb-3">画像生成</h2>
           <div className="border border-zinc-800 bg-zinc-900 rounded-2xl p-4 flex flex-col gap-3">
-            {/* プロバイダー選択（3択） */}
+            {/* プロバイダー選択 */}
             <div className="flex gap-2">
-              {(['pollinations', 'huggingface', 'cloudflare'] as const).map(p => (
+              {(['pollinations', 'huggingface', 'cloudflare', 'aihorde'] as const).map(p => (
                 <button
                   key={p}
                   onClick={() => onImageSettingsChange({ ...imageSettings, provider: p })}
@@ -134,7 +134,9 @@ export default function SettingsView({ data, onImport, theme, onThemeChange, ima
                     ? 'Pollinations'
                     : p === 'huggingface'
                     ? 'Hugging Face'
-                    : 'Cloudflare'}
+                    : p === 'cloudflare'
+                    ? 'Cloudflare'
+                    : 'AI Horde'}
                 </button>
               ))}
             </div>
@@ -205,13 +207,47 @@ export default function SettingsView({ data, onImport, theme, onThemeChange, ima
               </>
             )}
 
+            {/* AI Horde設定項目の表示 */}
+            {imageSettings.provider === 'aihorde' && (
+              <>
+                <div>
+                  <p className="text-xs text-zinc-400 mb-1.5">APIキー（任意）</p>
+                  <input
+                    type="password"
+                    value={imageSettings.aihordeKey || ''}
+                    onChange={e => onImageSettingsChange({ ...imageSettings, aihordeKey: e.target.value })}
+                    placeholder="0000000000（匿名）"
+                    autoComplete="off"
+                    className="w-full bg-zinc-800 border border-zinc-700 text-zinc-100 placeholder-zinc-600 rounded-xl px-3 py-2.5 text-xs outline-none focus:border-emerald-500 transition-colors font-mono"
+                  />
+                  <p className="text-[10px] text-zinc-600 mt-1">
+                    未入力でも無料利用できます。登録キーを使うと匿名利用より優先度が上がります
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-zinc-400 mb-1.5">モデル</p>
+                  <select
+                    value={imageSettings.aihordeModel || 'Deliberate'}
+                    onChange={e => onImageSettingsChange({ ...imageSettings, aihordeModel: e.target.value })}
+                    className="w-full bg-zinc-800 border border-zinc-700 text-zinc-100 rounded-xl px-3 py-2.5 text-xs outline-none focus:border-emerald-500"
+                  >
+                    <option value="Deliberate">Deliberate</option>
+                    <option value="Anything Diffusion">Anything Diffusion</option>
+                    <option value="DreamShaper">DreamShaper</option>
+                  </select>
+                </div>
+              </>
+            )}
+
             {/* フッター説明文 */}
             <p className="text-[10px] text-zinc-600">
               {imageSettings.provider === 'pollinations'
                 ? 'Pollinations.aiで無料生成（APIキー不要）'
                 : imageSettings.provider === 'huggingface'
                 ? 'Hugging Faceで生成（トークン必要・失敗時はpollinationsにフォールバック）'
-                : 'Cloudflare Workers AIで生成（Account ID・APIトークン必要）'}
+                : imageSettings.provider === 'cloudflare'
+                ? 'Cloudflare Workers AIで生成（Worker URLが必要）'
+                : 'AI Hordeで無料生成（混雑時は待ち時間が長くなります）'}
             </p>
           </div>
         </section>
@@ -285,7 +321,7 @@ export default function SettingsView({ data, onImport, theme, onThemeChange, ima
           <div className="border border-zinc-800 bg-zinc-900 rounded-2xl p-4 flex flex-col gap-2">
             <div className="flex justify-between text-sm">
               <span className="text-zinc-400">version</span>
-              <span className="font-mono font-medium text-zinc-100">1.0.16</span>
+              <span className="font-mono font-medium text-zinc-100">1.0.17</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-zinc-400">update</span>

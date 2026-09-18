@@ -54,6 +54,8 @@ export const defaultImageSettings: ImageSettings = {
   cfAccountId: '',
   cfToken: '',
   cfModel: '@cf/bytedance/stable-diffusion-xl-lightning',
+  aihordeKey: '0000000000',
+  aihordeModel: 'Deliberate',
 };
 
 function parseImageSettings(parsed: Partial<ImageSettings>): ImageSettings {
@@ -62,7 +64,7 @@ function parseImageSettings(parsed: Partial<ImageSettings>): ImageSettings {
   const hfModel = rawModel.startsWith('black-forest-labs/FLUX')
     ? 'stabilityai/stable-diffusion-3-medium-diffusers'
     : rawModel;
-  const validProviders = ['pollinations', 'huggingface', 'cloudflare'] as const;
+  const validProviders = ['pollinations', 'huggingface', 'cloudflare', 'aihorde'] as const;
   const provider = validProviders.includes(parsed.provider as typeof validProviders[number])
     ? (parsed.provider as typeof validProviders[number])
     : 'pollinations';
@@ -74,6 +76,8 @@ function parseImageSettings(parsed: Partial<ImageSettings>): ImageSettings {
     cfToken: typeof parsed.cfToken === 'string' ? parsed.cfToken : '',
     cfModel: typeof parsed.cfModel === 'string' ? parsed.cfModel : defaultImageSettings.cfModel,
     cfWorkerUrl: typeof parsed.cfWorkerUrl === 'string' ? parsed.cfWorkerUrl : '',
+    aihordeKey: typeof parsed.aihordeKey === 'string' ? parsed.aihordeKey : defaultImageSettings.aihordeKey,
+    aihordeModel: typeof parsed.aihordeModel === 'string' ? parsed.aihordeModel : defaultImageSettings.aihordeModel,
   };
 }
 

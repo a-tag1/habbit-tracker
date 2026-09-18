@@ -81,7 +81,7 @@ export interface GachaData {
   activeSeasonId: string | null;
 }
 
-export type ImageProvider = 'pollinations' | 'huggingface' | 'cloudflare';
+export type ImageProvider = 'pollinations' | 'huggingface' | 'cloudflare' | 'aihorde';
 
 export interface ImageSettings {
   provider: ImageProvider;
@@ -91,4 +91,6 @@ export interface ImageSettings {
   cfToken?: string;
   cfModel?: string;
   cfWorkerUrl?: string;
+  aihordeKey?: string;
+  aihordeModel?: string;
 }

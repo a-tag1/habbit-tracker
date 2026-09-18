@@ -20,11 +20,13 @@ interface Props {
   onCreateSeason: (theme: string) => void;
   onSwitchSeason: (id: string | null) => void;
   // --- プロバイダー設定の拡張 ---
-  imageProvider: 'pollinations' | 'huggingface' | 'cloudflare';
+  imageProvider: 'pollinations' | 'huggingface' | 'cloudflare' | 'aihorde';
   hfToken?: string;
   hfModel?: string;
   cfWorkerUrl?: string;
   cfModel?: string;
+  aihordeKey?: string;
+  aihordeModel?: string;
 }
 
 const RARITY_STYLE: Record<Rarity, { border: string; text: string; glow: string; label: string }> = {
@@ -92,17 +94,67 @@ function ResultCard({ draw, index }: { draw: GachaDraw; index: number }) {
 }
 
 function MagicCircle({ theme }: { theme?: string }) {
+  const [messageIndex, setMessageIndex] = useState(0);
+  const messages = [
+    '魔力を集めています',
+    'カードの輪郭を描いています',
+    '色彩を注いでいます',
+    '最後の輝きを待っています',
+  ];
+
+  useEffect(() => {
+    const messageTimer = window.setInterval(() => {
+      setMessageIndex(index => (index + 1) % messages.length);
+    }, 4200);
+    return () => window.clearInterval(messageTimer);
+  }, [messages.length]);
+
   return (
-    <div className="flex flex-col items-center justify-center flex-1 gap-6">
-      <div className="relative flex items-center justify-center w-48 h-48">
-        <div className="absolute inset-0 rounded-full border-2 border-yellow-400/60 animate-spin" style={{ animationDuration: '3s' }} />
-        <div className="absolute inset-4 rounded-full border-2 border-purple-400/60 animate-spin" style={{ animationDuration: '2s', animationDirection: 'reverse' }} />
-        <div className="absolute inset-8 rounded-full border border-blue-400/40 animate-spin" style={{ animationDuration: '4s' }} />
-        <div className="w-20 h-20 rounded-full bg-gradient-to-br from-yellow-500/30 via-purple-500/20 to-blue-500/30 flex items-center justify-center animate-pulse">
-          <span className="text-4xl">✦</span>
+    <div className="relative flex flex-col items-center justify-center flex-1 gap-5 overflow-hidden bg-[radial-gradient(circle_at_center,_rgba(113,63,18,0.18),_transparent_55%)]">
+      <div className="absolute top-1/4 w-72 h-72 rounded-full border border-yellow-400/10 animate-ping" style={{ animationDuration: '4s' }} />
+      <div className="relative flex items-center justify-center w-56 h-56">
+        <div className="absolute inset-0 rounded-full border border-yellow-300/50 border-dashed animate-spin" style={{ animationDuration: '9s' }} />
+        <div className="absolute inset-5 rounded-full border-2 border-purple-400/30 animate-spin" style={{ animationDuration: '5s', animationDirection: 'reverse' }} />
+        <div className="absolute inset-10 rounded-full border border-cyan-300/30 animate-spin" style={{ animationDuration: '7s' }} />
+        <div className="absolute inset-1/2 w-2 h-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-yellow-200 shadow-[0_0_18px_6px_rgba(250,204,21,0.7)]" />
+        {[0, 1, 2, 3].map(orbitIndex => (
+          <span
+            key={orbitIndex}
+            className="absolute w-2 h-2 rounded-full bg-yellow-300 shadow-[0_0_10px_3px_rgba(250,204,21,0.6)]"
+            style={{
+              transform: `rotate(${orbitIndex * 90}deg) translateY(-96px)`,
+              animation: `spin ${3.5 + orbitIndex * 0.5}s linear infinite`,
+              animationDelay: `${orbitIndex * -0.7}s`,
+            }}
+          />
+        ))}
+        <div className="relative w-24 h-32 rounded-xl border border-yellow-300/60 bg-gradient-to-br from-yellow-500/25 via-purple-500/20 to-cyan-500/20 shadow-[0_0_28px_rgba(250,204,21,0.25)] animate-pulse flex items-center justify-center">
+          <span className="text-4xl text-yellow-200">✦</span>
+          <div className="absolute inset-2 rounded-lg border border-white/10" />
         </div>
       </div>
-      <p className="text-sm text-zinc-300 animate-pulse">{theme ? `「${theme}」召喚中…` : '召喚中…'}</p>
+      <div className="flex gap-2" aria-hidden="true">
+        {['N', 'R', 'SSR'].map((rarity, rarityIndex) => (
+          <div
+            key={rarity}
+            className={`w-9 h-12 rounded-md border flex items-center justify-center text-[10px] font-bold animate-bounce ${
+              rarity === 'SSR' ? 'border-yellow-400/70 text-yellow-300' : rarity === 'R' ? 'border-blue-400/60 text-blue-300' : 'border-zinc-500/60 text-zinc-400'
+            }`}
+            style={{ animationDelay: `${rarityIndex * 180}ms`, animationDuration: '1.6s' }}
+          >
+            {rarity}
+          </div>
+        ))}
+      </div>
+      <div className="w-64 text-center">
+        <p className="text-sm text-zinc-200 transition-opacity duration-500" aria-live="polite">
+          {messages[messageIndex]}
+        </p>
+        <p className="text-xs text-zinc-500 mt-1">{theme ? `「${theme}」の召喚中` : '召喚中'}</p>
+        <div className="h-1 mt-4 overflow-hidden rounded-full bg-zinc-800">
+          <div className="h-full w-1/3 rounded-full bg-gradient-to-r from-yellow-400 via-purple-400 to-cyan-300 animate-[loading-bar_2.4s_ease-in-out_infinite]" />
+        </div>
+      </div>
     </div>
   );
 }
@@ -159,7 +211,7 @@ function SeasonCreationModal({
 export default function GachaView({
   coins, ownedCards, customSeasons, activeSeasonId,
   onSpendCoins, onAddCards, onAddCoins, onReplaceCard, onCreateSeason, onSwitchSeason,
-  imageProvider, hfToken, hfModel, cfWorkerUrl, cfModel,
+  imageProvider, hfToken, hfModel, cfWorkerUrl, cfModel, aihordeKey, aihordeModel,
 }: Props) {
   const [subTab, setSubTab] = useState<SubTab>('gacha');
   const [phase, setPhase] = useState<GachaPhase>('idle');
@@ -232,6 +284,8 @@ export default function GachaView({
       hfModel,
       cfWorkerUrl: cfWorkerUrl || undefined,
       cfModel,
+      aihordeKey: aihordeKey || undefined,
+      aihordeModel,
     };
 
     Promise.all([

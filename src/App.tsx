@@ -166,6 +166,8 @@ function App() {
             hfModel={imageSettings.hfModel}
             cfWorkerUrl={imageSettings.cfWorkerUrl}
             cfModel={imageSettings.cfModel}
+            aihordeKey={imageSettings.aihordeKey}
+            aihordeModel={imageSettings.aihordeModel}
           />
         )}
         </div>
