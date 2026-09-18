@@ -76,7 +76,7 @@ function App() {
     const prevStatus = getStatusForDate(date, taskId)
     setStatus(date, taskId, status)
 
-    if (status === 'completed' && prevStatus !== status) {
+    if ((status === 'completed' || status === 'skipped') && prevStatus !== status) {
       const task = tasks.find(t => t.id === taskId)
       const dow = getDayOfWeek(date)
       const visibleTasks = tasks.filter(t => {
@@ -87,12 +87,12 @@ function App() {
       })
       const completedAfter = visibleTasks.filter(
         t => t.id !== taskId ? getStatusForDate(date, t.id) === 'completed' : status === 'completed'
-      ).length + (status === 'completed' ? 1 : 0)
+      ).length
       const skippedAfter = visibleTasks.filter(
-        t => t.id !== taskId && getStatusForDate(date, t.id) === 'skipped'
+        t => t.id !== taskId ? getStatusForDate(date, t.id) === 'skipped' : status === 'skipped'
       ).length
       const isHard = task?.difficulty === 'hard'
-      earnCoins(date, completedAfter, skippedAfter, visibleTasks.length, isHard)
+      earnCoins(date, completedAfter, skippedAfter, visibleTasks.length, isHard, status === 'completed')
     }
   }, [tasks, getStatusForDate, setStatus, earnCoins])
 

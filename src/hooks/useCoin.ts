@@ -36,9 +36,10 @@ export function useCoin() {
     skippedCount: number,
     totalCount: number,
     isHard: boolean,
+    isTaskCompletion: boolean,
   ) => {
     const prev = dataRef.current;
-    let delta = isHard ? 10 : 5;
+    let delta = isTaskCompletion ? (isHard ? 10 : 5) : 0;
 
     const bonuses = [...prev.dailyBonuses];
     const existingIdx = bonuses.findIndex(b => b.date === date);
@@ -46,11 +47,11 @@ export function useCoin() {
       ? { ...bonuses[existingIdx] }
       : { date, bonus5: false, bonus10: false, complete: false };
 
-    if (completedCount >= 5 && !existing.bonus5) {
+    if (isTaskCompletion && completedCount >= 5 && !existing.bonus5) {
       delta += 10;
       existing.bonus5 = true;
     }
-    if (completedCount >= 10 && !existing.bonus10) {
+    if (isTaskCompletion && completedCount >= 10 && !existing.bonus10) {
       delta += 20;
       existing.bonus10 = true;
     }
