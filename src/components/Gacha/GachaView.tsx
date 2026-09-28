@@ -1,6 +1,6 @@
 ﻿import { useState, useEffect, useRef, useMemo } from 'react';
 import type { OwnedCard, Rarity, CustomSeason, CardMaster } from '../../types';
-import { drawCards, drawFocused, GACHA_COST_SINGLE, GACHA_COST_FOCUSED, DUPLICATE_REFUND, type GachaDraw, type DrawContext, type ImageConfig } from '../../utils/gachaUtils';
+import { drawCards, drawFocused, preloadImage, GACHA_COST_SINGLE, GACHA_COST_FOCUSED, DUPLICATE_REFUND, type GachaDraw, type DrawContext, type ImageConfig } from '../../utils/gachaUtils';
 import { CARD_MASTER } from '../../utils/cardMaster';
 import { CARD_MASTER as CARD_MASTER_2, SEASON2_ID } from '../../utils/cardMaster2';
 import CollectionView from './CollectionView';
@@ -38,9 +38,22 @@ const RARITY_STYLE: Record<Rarity, { border: string; text: string; glow: string;
 
 const EXAMPLE_THEMES = ['宇宙海賊', '和風妖怪', '魔法学校', '未来都市', '海底王国', '古代文明', 'カフェ&スイーツ', 'サムライ', '西部劇', '北欧神話'];
 
+const AUTO_RETRY_MAX = 3;
+
 function CardImage({ url, name, rarity }: { url: string; name: string; rarity: Rarity }) {
   const [state, setState] = useState<'loading' | 'loaded' | 'error'>('loading');
   const [retryKey, setRetryKey] = useState(0);
+  const autoRetryRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => () => { if (autoRetryRef.current) clearTimeout(autoRetryRef.current); }, []);
+
+  const handleError = () => {
+    if (retryKey < AUTO_RETRY_MAX) {
+      autoRetryRef.current = setTimeout(() => setRetryKey(k => k + 1), 2000 * 2 ** retryKey);
+    } else {
+      setState('error');
+    }
+  };
 
   return (
     <div className="relative w-full aspect-[2/3] rounded-lg overflow-hidden bg-zinc-800">
@@ -62,7 +75,7 @@ function CardImage({ url, name, rarity }: { url: string; name: string; rarity: R
         alt={name}
         className={`w-full h-full object-cover transition-opacity duration-300 ${state === 'loaded' ? 'opacity-100' : 'opacity-0'}`}
         onLoad={() => setState('loaded')}
-        onError={() => setState('error')}
+        onError={handleError}
       />
       {state === 'loaded' && rarity === 'SSR' && (
         <div className="absolute inset-0 bg-gradient-to-t from-yellow-500/20 via-transparent to-transparent pointer-events-none" />
@@ -289,7 +302,11 @@ export default function GachaView({
     };
 
     Promise.all([
-      mode === 'single' ? drawCards(ownedMasterIds, ctx, imgConfig) : drawFocused(ownedMasterIds, ctx, imgConfig),
+      (mode === 'single' ? drawCards(ownedMasterIds, ctx, imgConfig) : drawFocused(ownedMasterIds, ctx, imgConfig))
+        .then(async results => {
+          await Promise.all(results.map(d => preloadImage(d.card.imageUrl)));
+          return results;
+        }),
       new Promise<void>(r => { timerRef.current = setTimeout(r, 3000); }),
     ]).then(([results]) => {
       setDraws(results);

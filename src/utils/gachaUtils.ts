@@ -33,6 +33,28 @@ export function buildImageUrl(prompt: string, seed: number): string {
   return `https://image.pollinations.ai/prompt/${encoded}?width=512&height=768&seed=${seed}&nologo=true`;
 }
 
+// Pollinations は生成に時間がかかり、429/5xx で失敗することがあるため、ブラウザキャッシュに載るまで再試行する
+export function preloadImage(url: string, retries = 3, timeoutMs = 60000): Promise<boolean> {
+  if (url.startsWith('data:')) return Promise.resolve(true);
+  const attempt = (n: number): Promise<boolean> => new Promise(resolve => {
+    const img = new Image();
+    let done = false;
+    const timer = setTimeout(() => fail(), timeoutMs);
+    const fail = () => {
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+      img.onload = img.onerror = null;
+      if (n >= retries) { resolve(false); return; }
+      setTimeout(() => attempt(n + 1).then(resolve), 2000 * 2 ** n);
+    };
+    img.onload = () => { if (done) return; done = true; clearTimeout(timer); resolve(true); };
+    img.onerror = fail;
+    img.src = url;
+  });
+  return attempt(0);
+}
+
 async function buildImageUrlHF(prompt: string, seed: number, token: string, model: string): Promise<string> {
   const fullPrompt = `${prompt}, masterpiece, anime style, trading card format`;
   const response = await fetch(
