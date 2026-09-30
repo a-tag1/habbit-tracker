@@ -229,6 +229,7 @@ export default function GachaView({
   const [subTab, setSubTab] = useState<SubTab>('gacha');
   const [phase, setPhase] = useState<GachaPhase>('idle');
   const [draws, setDraws] = useState<GachaDraw[]>([]);
+  const [pullError, setPullError] = useState(false);
   const [showSeasonModal, setShowSeasonModal] = useState(false);
   const [isCreatingSeason, setIsCreatingSeason] = useState(false);
   const [overwriteSet, setOverwriteSet] = useState<Set<string>>(new Set());
@@ -285,6 +286,7 @@ export default function GachaView({
   const executePull = (mode: 'single' | 'focused') => {
     const cost = mode === 'single' ? GACHA_COST_SINGLE : GACHA_COST_FOCUSED;
     if (!onSpendCoins(cost)) return;
+    setPullError(false);
     setPhase('pulling');
 
     const ctx: DrawContext | undefined = activeSeasonId !== null
@@ -316,8 +318,8 @@ export default function GachaView({
       const newCards = results.filter(d => !d.isDuplicate).map(d => d.card);
       if (newCards.length > 0) onAddCards(newCards);
     }).catch(() => {
-      // 失敗時はコインを返金しidleに戻る
       onAddCoins(cost);
+      setPullError(true);
       setPhase('idle');
     });
   };
@@ -440,6 +442,20 @@ export default function GachaView({
 
           {phase === 'idle' && (
             <div className="flex flex-col flex-1 overflow-y-auto px-4 py-4 gap-4">
+              {pullError && (
+                <div role="alert" className="flex items-start justify-between gap-3 rounded-lg border border-rose-800 bg-rose-950/40 px-3 py-2.5">
+                  <p className="text-xs leading-relaxed text-rose-200">
+                    ガチャに失敗しました。コインは返還されています。通信状態を確認して、もう一度お試しください。
+                  </p>
+                  <button
+                    onClick={() => setPullError(false)}
+                    className="shrink-0 text-xs text-rose-300 underline"
+                    aria-label="エラー通知を閉じる"
+                  >
+                    閉じる
+                  </button>
+                </div>
+              )}
 
               {/* シーズンセレクター */}
               {(isBaseSeasonComplete || customSeasons.length > 0) && (
