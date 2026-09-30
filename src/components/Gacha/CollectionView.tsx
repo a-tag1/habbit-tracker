@@ -1,7 +1,9 @@
 import { useState } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import type { OwnedCard, Rarity, CustomSeason, CardMaster } from '../../types';
 import { CARD_MASTER } from '../../utils/cardMaster';
 import { CARD_MASTER as CARD_MASTER_2, SEASON2_ID } from '../../utils/cardMaster2';
+import { useSwipe } from '../../hooks/useSwipe';
 
 const RARITY_STYLE: Record<Rarity, { border: string; text: string; bg: string }> = {
   N:   { border: 'border-zinc-600',   text: 'text-zinc-400',   bg: 'bg-zinc-800' },
@@ -33,6 +35,20 @@ export default function CollectionView({ ownedCards, customSeasons, activeSeason
     viewingSeason === null ? !c.seasonId : c.seasonId === viewingSeason
   );
   const ownedByMasterId = new Map(ownedInSeason.map(c => [c.cardMasterId, c]));
+  const selectableCards = viewingCards.flatMap(master => {
+    const card = ownedByMasterId.get(master.id);
+    return card ? [card] : [];
+  });
+  const selectedIndex = selected ? selectableCards.findIndex(card => card.userCardId === selected.userCardId) : -1;
+  const changeSelected = (offset: number) => {
+    if (selectedIndex < 0 || selectableCards.length < 2) return;
+    const nextIndex = (selectedIndex + offset + selectableCards.length) % selectableCards.length;
+    setSelected(selectableCards[nextIndex]);
+  };
+  const { onTouchStart, onTouchEnd } = useSwipe(
+    () => changeSelected(1),
+    () => changeSelected(-1),
+  );
   const total = viewingCards.length;
   const owned = ownedInSeason.length;
 
@@ -133,6 +149,8 @@ export default function CollectionView({ ownedCards, customSeasons, activeSeason
           <div
             className={`relative w-full max-w-xs rounded-2xl border-2 overflow-hidden bg-zinc-900 ${RARITY_STYLE[selected.rarity].border}`}
             onClick={e => e.stopPropagation()}
+            onTouchStart={onTouchStart}
+            onTouchEnd={onTouchEnd}
           >
             <div className="relative w-full aspect-[2/3]">
               <img
@@ -147,9 +165,28 @@ export default function CollectionView({ ownedCards, customSeasons, activeSeason
               <button
                 onClick={() => setSelected(null)}
                 className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/60 flex items-center justify-center text-zinc-300 text-lg"
+                aria-label="閉じる"
               >
                 ×
               </button>
+              {selectableCards.length > 1 && (
+                <>
+                  <button
+                    onClick={() => changeSelected(-1)}
+                    className="absolute left-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/60 flex items-center justify-center text-white"
+                    aria-label="前のカード"
+                  >
+                    <ChevronLeft size={22} />
+                  </button>
+                  <button
+                    onClick={() => changeSelected(1)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-black/60 flex items-center justify-center text-white"
+                    aria-label="次のカード"
+                  >
+                    <ChevronRight size={22} />
+                  </button>
+                </>
+              )}
             </div>
             <div className="px-4 py-4">
               <h3 className={`text-base font-bold mb-3 ${RARITY_STYLE[selected.rarity].text}`}>{selected.name}</h3>
