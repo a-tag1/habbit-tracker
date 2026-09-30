@@ -4,6 +4,8 @@ import { loadData, saveData, defaultAppData, createTask, upsertHistory, upsertHi
 
 export function useHabits() {
   const [data, setData] = useState<AppData>(defaultAppData);
+  const [ready, setReady] = useState(false);
+  const [loadFailed, setLoadFailed] = useState(false);
   const dataRef = useRef(defaultAppData);
   const loadedRef = useRef(false);
 
@@ -12,7 +14,8 @@ export function useHabits() {
       dataRef.current = d;
       setData(d);
       loadedRef.current = true;
-    });
+      setReady(true);
+    }).catch(() => setLoadFailed(true));
   }, []);
 
   const persist = useCallback((updater: (prev: AppData) => AppData) => {
@@ -123,5 +126,7 @@ export function useHabits() {
     statsTaskOrder,
     setStatsTaskOrder,
     importAppData,
+    ready,
+    loadFailed,
   };
 }

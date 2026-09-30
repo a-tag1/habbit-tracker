@@ -55,6 +55,8 @@ function App() {
     statsTaskOrder,
     setStatsTaskOrder,
     importAppData,
+    ready,
+    loadFailed,
   } = useHabits()
   const {
     coins,
@@ -95,6 +97,19 @@ function App() {
       earnCoins(date, completedAfter, skippedAfter, visibleTasks.length, isHard, status === 'completed')
     }
   }, [tasks, getStatusForDate, setStatus, earnCoins])
+
+  if (loadFailed) {
+    return (
+      <div className="flex h-dvh flex-col items-center justify-center gap-3 text-sm text-zinc-600">
+        <p>データを読み込めませんでした。</p>
+        <button onClick={() => window.location.reload()} className="underline">再読み込み</button>
+      </div>
+    )
+  }
+
+  if (!ready) {
+    return <div className="flex h-dvh items-center justify-center text-sm text-zinc-500">読み込み中...</div>
+  }
 
   return (
     <div className="flex flex-col" style={{ height: '100dvh' }}>

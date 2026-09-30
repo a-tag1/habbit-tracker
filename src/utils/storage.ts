@@ -159,21 +159,17 @@ function parseAppData(parsed: Partial<AppData>): AppData {
 }
 
 export async function loadData(): Promise<AppData> {
-  try {
-    const stored = await dbGet<Partial<AppData>>(STORAGE_KEY);
-    if (stored !== undefined) return parseAppData(stored);
-    // localStorage からのマイグレーション
-    const lsRaw = localStorage.getItem(STORAGE_KEY);
-    if (lsRaw) {
-      const data = parseAppData(JSON.parse(lsRaw) as Partial<AppData>);
-      await dbSet(STORAGE_KEY, data);
-      localStorage.removeItem(STORAGE_KEY);
-      return data;
-    }
-    return defaultAppData;
-  } catch {
-    return defaultAppData;
+  const stored = await dbGet<Partial<AppData>>(STORAGE_KEY);
+  if (stored !== undefined) return parseAppData(stored);
+  // localStorage からのマイグレーション
+  const lsRaw = localStorage.getItem(STORAGE_KEY);
+  if (lsRaw) {
+    const data = parseAppData(JSON.parse(lsRaw) as Partial<AppData>);
+    await dbSet(STORAGE_KEY, data);
+    localStorage.removeItem(STORAGE_KEY);
+    return data;
   }
+  return defaultAppData;
 }
 
 export async function saveData(data: AppData): Promise<void> {
