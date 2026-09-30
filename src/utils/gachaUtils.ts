@@ -12,6 +12,7 @@ const TOTAL_WEIGHT = RARITY_WEIGHTS.reduce((s, r) => s + r.weight, 0);
 
 export const GACHA_COST_SINGLE = 50;
 export const GACHA_COST_FOCUSED = 200;
+export const GACHA_COST_REGENERATE = 50;
 export const DUPLICATE_REFUND = 25;
 
 export interface DrawContext {
@@ -233,6 +234,12 @@ async function resolveImageUrl(prompt: string, seed: number, config?: ImageConfi
   // デフォルト / Pollinations 選択時
   const url = buildImageUrl(prompt, seed);
   return { url, generatedBy: { provider: 'Pollinations.AI', model: 'flux' } };
+}
+
+export async function regenerateCardImage(prompt: string, config?: ImageConfig): Promise<{ imageUrl: string; seed: number }> {
+  const seed = Math.floor(Math.random() * 1000000);
+  const { url } = await resolveImageUrl(prompt, seed, config);
+  return { imageUrl: url, seed };
 }
 
 export interface GeneratedBy {

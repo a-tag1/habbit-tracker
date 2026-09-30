@@ -4,6 +4,7 @@ import type { OwnedCard, Rarity, CustomSeason, CardMaster } from '../../types';
 import { CARD_MASTER } from '../../utils/cardMaster';
 import { CARD_MASTER as CARD_MASTER_2, SEASON2_ID } from '../../utils/cardMaster2';
 import { useSwipe } from '../../hooks/useSwipe';
+import { GACHA_COST_REGENERATE } from '../../utils/gachaUtils';
 
 const RARITY_STYLE: Record<Rarity, { border: string; text: string; bg: string }> = {
   N:   { border: 'border-zinc-600',   text: 'text-zinc-400',   bg: 'bg-zinc-800' },
@@ -16,12 +17,18 @@ interface Props {
   ownedCards: OwnedCard[];
   customSeasons: CustomSeason[];
   activeSeasonId: string | null;
+  coins: number;
+  onRegenerateCard: (card: OwnedCard, prompt: string) => Promise<OwnedCard>;
+  onReplaceCard: (cardMasterId: string, newCard: OwnedCard) => void;
 }
 
-export default function CollectionView({ ownedCards, customSeasons, activeSeasonId }: Props) {
+export default function CollectionView({ ownedCards, customSeasons, activeSeasonId, coins, onRegenerateCard, onReplaceCard }: Props) {
   const [viewingSeason, setViewingSeason] = useState<string | null>(activeSeasonId);
   const [selected, setSelected] = useState<OwnedCard | null>(null);
   const [slideDirection, setSlideDirection] = useState<'next' | 'previous' | null>(null);
+  const [replacementCandidate, setReplacementCandidate] = useState<OwnedCard | null>(null);
+  const [isRegenerating, setIsRegenerating] = useState(false);
+  const [regenerationError, setRegenerationError] = useState('');
 
   const baseOwnedIds = new Set(ownedCards.filter(c => !c.seasonId).map(c => c.cardMasterId));
   const isBaseSeasonComplete = CARD_MASTER.length > 0 && CARD_MASTER.every(c => baseOwnedIds.has(c.id));
@@ -45,7 +52,23 @@ export default function CollectionView({ ownedCards, customSeasons, activeSeason
     if (selectedIndex < 0 || selectableCards.length < 2) return;
     const nextIndex = (selectedIndex + offset + selectableCards.length) % selectableCards.length;
     setSlideDirection(offset > 0 ? 'next' : 'previous');
+    setReplacementCandidate(null);
+    setRegenerationError('');
     setSelected(selectableCards[nextIndex]);
+  };
+  const requestRegeneration = async () => {
+    if (!selected || isRegenerating) return;
+    const master = viewingCards.find(card => card.id === selected.cardMasterId);
+    if (!master) return;
+    setIsRegenerating(true);
+    setRegenerationError('');
+    try {
+      setReplacementCandidate(await onRegenerateCard(selected, master.prompt));
+    } catch (error) {
+      setRegenerationError(error instanceof Error ? error.message : '画像の再生成に失敗しました。');
+    } finally {
+      setIsRegenerating(false);
+    }
   };
   const { onTouchStart, onTouchEnd } = useSwipe(
     () => changeSelected(1),
@@ -113,6 +136,8 @@ export default function CollectionView({ ownedCards, customSeasons, activeSeason
                 onClick={() => {
                   if (!card) return;
                   setSlideDirection(null);
+                  setReplacementCandidate(null);
+                  setRegenerationError('');
                   setSelected(card);
                 }}
                 className={`flex flex-col rounded-xl border-2 overflow-hidden ${style.border} ${
@@ -150,11 +175,11 @@ export default function CollectionView({ ownedCards, customSeasons, activeSeason
 
       {/* カード詳細モーダル */}
       {selected && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-6" onClick={() => setSelected(null)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto px-6 py-4" onClick={() => setSelected(null)}>
           <div className="absolute inset-0 bg-black/70" />
           <div
             key={selected.userCardId}
-            className={`relative w-full max-w-xs rounded-2xl border-2 overflow-hidden bg-zinc-900 ${RARITY_STYLE[selected.rarity].border} ${slideDirection === 'next' ? 'collection-card-next' : slideDirection === 'previous' ? 'collection-card-previous' : ''}`}
+            className={`relative max-h-[92dvh] w-full max-w-xs overflow-y-auto rounded-2xl border-2 bg-zinc-900 ${RARITY_STYLE[selected.rarity].border} ${slideDirection === 'next' ? 'collection-card-next' : slideDirection === 'previous' ? 'collection-card-previous' : ''}`}
             onClick={e => e.stopPropagation()}
             onTouchStart={onTouchStart}
             onTouchEnd={onTouchEnd}
@@ -206,6 +231,54 @@ export default function CollectionView({ ownedCards, customSeasons, activeSeason
               <p className="text-[10px] text-zinc-600 mt-3">
                 取得日: {new Date(selected.obtainedAt).toLocaleDateString('ja-JP')}
               </p>
+              {replacementCandidate ? (
+                <div className="mt-4 border-t border-zinc-700 pt-4">
+                  <p className="mb-1 text-xs font-medium text-zinc-200">新しい画像を確認</p>
+                  <p className="mb-3 text-[10px] leading-relaxed text-zinc-500">
+                    変更前を選んでも再生成の50コインは消費されます。
+                  </p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {[{ label: '変更前', card: selected }, { label: '新しい画像', card: replacementCandidate }].map(({ label, card }) => (
+                      <div key={label} className="min-w-0">
+                        <p className="mb-1 text-center text-[10px] text-zinc-500">{label}</p>
+                        <img src={card.imageUrl} alt={`${card.name} ${label}`} className="aspect-[2/3] w-full rounded-md object-cover" />
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-3 flex gap-2">
+                    <button
+                      onClick={() => setReplacementCandidate(null)}
+                      className="flex-1 rounded-lg bg-zinc-700 py-2 text-xs text-zinc-200"
+                    >
+                      変更前を保持
+                    </button>
+                    <button
+                      onClick={() => {
+                        onReplaceCard(selected.cardMasterId, replacementCandidate);
+                        setSelected(replacementCandidate);
+                        setReplacementCandidate(null);
+                      }}
+                      className="flex-1 rounded-lg bg-emerald-700 py-2 text-xs font-medium text-white"
+                    >
+                      新しい画像に上書き
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="mt-4 border-t border-zinc-700 pt-4">
+                  <button
+                    onClick={requestRegeneration}
+                    disabled={isRegenerating || coins < GACHA_COST_REGENERATE}
+                    className="w-full rounded-lg bg-zinc-700 py-2.5 text-xs font-medium text-zinc-100 transition-colors hover:bg-zinc-600 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    {isRegenerating ? '画像を生成中…' : `画像を再生成（${GACHA_COST_REGENERATE}コイン）`}
+                  </button>
+                  {coins < GACHA_COST_REGENERATE && (
+                    <p className="mt-1.5 text-center text-[10px] text-zinc-500">コインが不足しています</p>
+                  )}
+                  {regenerationError && <p role="alert" className="mt-2 text-xs leading-relaxed text-rose-300">{regenerationError}</p>}
+                </div>
+              )}
             </div>
           </div>
         </div>

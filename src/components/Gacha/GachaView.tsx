@@ -1,6 +1,6 @@
 ﻿import { useState, useEffect, useRef, useMemo } from 'react';
 import type { OwnedCard, Rarity, CustomSeason, CardMaster } from '../../types';
-import { drawCards, drawFocused, preloadImage, GACHA_COST_SINGLE, GACHA_COST_FOCUSED, DUPLICATE_REFUND, type GachaDraw, type DrawContext, type ImageConfig } from '../../utils/gachaUtils';
+import { drawCards, drawFocused, preloadImage, regenerateCardImage, GACHA_COST_SINGLE, GACHA_COST_FOCUSED, GACHA_COST_REGENERATE, DUPLICATE_REFUND, type GachaDraw, type DrawContext, type ImageConfig } from '../../utils/gachaUtils';
 import { CARD_MASTER } from '../../utils/cardMaster';
 import { CARD_MASTER as CARD_MASTER_2, SEASON2_ID } from '../../utils/cardMaster2';
 import CollectionView from './CollectionView';
@@ -274,6 +274,30 @@ export default function GachaView({
     ? 'シーズン2'
     : (customSeasons.find(s => s.id === activeSeasonId)?.theme ?? '');
 
+  const handleRegenerateCard = async (card: OwnedCard, prompt: string): Promise<OwnedCard> => {
+    if (!onSpendCoins(GACHA_COST_REGENERATE)) {
+      throw new Error(`コインが不足しています（必要: ${GACHA_COST_REGENERATE}枚）。`);
+    }
+
+    try {
+      const imageConfig: ImageConfig = {
+        provider: imageProvider,
+        hfToken: hfToken || undefined,
+        hfModel,
+        cfWorkerUrl: cfWorkerUrl || undefined,
+        cfModel,
+        aihordeKey: aihordeKey || undefined,
+        aihordeModel,
+      };
+      const generated = await regenerateCardImage(prompt, imageConfig);
+      if (!await preloadImage(generated.imageUrl)) throw new Error('画像を読み込めませんでした。');
+      return { ...card, imageUrl: generated.imageUrl, seed: generated.seed };
+    } catch {
+      onAddCoins(GACHA_COST_REGENERATE);
+      throw new Error('画像の再生成に失敗しました。50コインを返還しました。通信状態を確認して再度お試しください。');
+    }
+  };
+
   const handleCreateSeason = (theme: string) => {
     setIsCreatingSeason(true);
     setTimeout(() => {
@@ -355,7 +379,14 @@ export default function GachaView({
       </div>
 
       {subTab === 'collection' ? (
-        <CollectionView ownedCards={ownedCards} customSeasons={customSeasons} activeSeasonId={activeSeasonId} />
+        <CollectionView
+          ownedCards={ownedCards}
+          customSeasons={customSeasons}
+          activeSeasonId={activeSeasonId}
+          coins={coins}
+          onRegenerateCard={handleRegenerateCard}
+          onReplaceCard={onReplaceCard}
+        />
       ) : (
         <div className="flex flex-col flex-1 overflow-hidden">
           {phase === 'pulling' && <MagicCircle theme={activeSeasonId !== null ? activeSeasonTheme : undefined} />}
