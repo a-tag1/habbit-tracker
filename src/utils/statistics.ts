@@ -1,5 +1,5 @@
 import type { Task, HistoryEntry } from '../types';
-import { getWeekRange, getMonthRange, getDaysInMonth, getDaysElapsed, getDayStrings, isDateInRange } from './dateUtils';
+import { getWeekRange, getMonthRange, getDaysInMonth, isDateInRange } from './dateUtils';
 
 /** 指定期間内の完了数を返す */
 export function getCompletedCount(history: HistoryEntry[], taskId: string, start: string, end: string): number {
@@ -8,33 +8,29 @@ export function getCompletedCount(history: HistoryEntry[], taskId: string, start
 
 /** デイリー・週次・月次タスクの進捗カウンターを返す */
 export function getProgressCounter(task: Task, history: HistoryEntry[], dateStr: string): { current: number; target: number } | null {
+  const { start } = getMonthRange(dateStr);
+  const current = getCompletedCount(history, task.id, start, dateStr);
+
   if (task.frequencyType === 'daily') {
-    const { start } = getMonthRange(dateStr);
     return {
-      current: getCompletedCount(history, task.id, start, dateStr),
-      target: getDaysElapsed(start, dateStr),
+      current,
+      target: getDaysInMonth(dateStr).length,
     };
   }
 
   if (task.frequencyType === 'weekly') {
-    const { start, end } = getWeekRange(dateStr);
-    const current = getCompletedCount(history, task.id, start, dateStr);
     if (task.weekDays && task.weekDays.length > 0) {
-      const target = getDayStrings(start, dateStr).filter(d =>
+      const target = getDaysInMonth(dateStr).filter(d =>
         task.weekDays!.includes(new Date(d + 'T12:00:00').getDay())
       ).length;
       return { current, target };
     }
-    return { current: getCompletedCount(history, task.id, start, end), target: task.frequencyCount };
+    const weeksInMonth = new Set(getDaysInMonth(dateStr).map(d => getWeekRange(d).start)).size;
+    return { current, target: task.frequencyCount * weeksInMonth };
   }
 
   if (task.frequencyType === 'monthly') {
-    const { start } = getMonthRange(dateStr);
-    const current = getCompletedCount(history, task.id, start, dateStr);
-    const monthDays = getDaysInMonth(dateStr).length;
-    const elapsedDays = getDaysElapsed(start, dateStr);
-    const target = monthDays > 0 ? Math.round((elapsedDays / monthDays) * task.frequencyCount) : 0;
-    return { current, target };
+    return { current, target: task.frequencyCount };
   }
 
   return null;
