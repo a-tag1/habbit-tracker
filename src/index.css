@@ -83,6 +83,31 @@ body {
   animation: card-reveal 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
 
+@keyframes collection-card-from-right {
+  from { opacity: 0.65; transform: translateX(24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes collection-card-from-left {
+  from { opacity: 0.65; transform: translateX(-24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.collection-card-next {
+  animation: collection-card-from-right 0.22s ease-out both;
+}
+
+.collection-card-previous {
+  animation: collection-card-from-left 0.22s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .collection-card-next,
+  .collection-card-previous {
+    animation-duration: 0.01ms;
+  }
+}
+
 /* ── コイン獲得フロートアニメーション ─── */
 
 @keyframes coin-float {

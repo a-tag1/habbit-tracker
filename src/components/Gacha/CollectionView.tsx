@@ -21,6 +21,7 @@ interface Props {
 export default function CollectionView({ ownedCards, customSeasons, activeSeasonId }: Props) {
   const [viewingSeason, setViewingSeason] = useState<string | null>(activeSeasonId);
   const [selected, setSelected] = useState<OwnedCard | null>(null);
+  const [slideDirection, setSlideDirection] = useState<'next' | 'previous' | null>(null);
 
   const baseOwnedIds = new Set(ownedCards.filter(c => !c.seasonId).map(c => c.cardMasterId));
   const isBaseSeasonComplete = CARD_MASTER.length > 0 && CARD_MASTER.every(c => baseOwnedIds.has(c.id));
@@ -43,6 +44,7 @@ export default function CollectionView({ ownedCards, customSeasons, activeSeason
   const changeSelected = (offset: number) => {
     if (selectedIndex < 0 || selectableCards.length < 2) return;
     const nextIndex = (selectedIndex + offset + selectableCards.length) % selectableCards.length;
+    setSlideDirection(offset > 0 ? 'next' : 'previous');
     setSelected(selectableCards[nextIndex]);
   };
   const { onTouchStart, onTouchEnd } = useSwipe(
@@ -108,7 +110,11 @@ export default function CollectionView({ ownedCards, customSeasons, activeSeason
             return (
               <button
                 key={master.id}
-                onClick={() => card && setSelected(card)}
+                onClick={() => {
+                  if (!card) return;
+                  setSlideDirection(null);
+                  setSelected(card);
+                }}
                 className={`flex flex-col rounded-xl border-2 overflow-hidden ${style.border} ${
                   card ? 'active:scale-95 transition-transform' : 'opacity-40'
                 }`}
@@ -147,7 +153,8 @@ export default function CollectionView({ ownedCards, customSeasons, activeSeason
         <div className="fixed inset-0 z-50 flex items-center justify-center px-6" onClick={() => setSelected(null)}>
           <div className="absolute inset-0 bg-black/70" />
           <div
-            className={`relative w-full max-w-xs rounded-2xl border-2 overflow-hidden bg-zinc-900 ${RARITY_STYLE[selected.rarity].border}`}
+            key={selected.userCardId}
+            className={`relative w-full max-w-xs rounded-2xl border-2 overflow-hidden bg-zinc-900 ${RARITY_STYLE[selected.rarity].border} ${slideDirection === 'next' ? 'collection-card-next' : slideDirection === 'previous' ? 'collection-card-previous' : ''}`}
             onClick={e => e.stopPropagation()}
             onTouchStart={onTouchStart}
             onTouchEnd={onTouchEnd}
@@ -189,7 +196,12 @@ export default function CollectionView({ ownedCards, customSeasons, activeSeason
               )}
             </div>
             <div className="px-4 py-4">
-              <h3 className={`text-base font-bold mb-3 ${RARITY_STYLE[selected.rarity].text}`}>{selected.name}</h3>
+              <div className="flex items-center justify-between gap-3 mb-3">
+                <h3 className={`min-w-0 truncate text-base font-bold ${RARITY_STYLE[selected.rarity].text}`}>{selected.name}</h3>
+                <span className="shrink-0 text-xs font-mono text-zinc-500" aria-live="polite">
+                  {selectedIndex + 1} / {selectableCards.length}
+                </span>
+              </div>
               <p className="text-sm text-zinc-300 leading-relaxed">{selected.cheerMessage}</p>
               <p className="text-[10px] text-zinc-600 mt-3">
                 取得日: {new Date(selected.obtainedAt).toLocaleDateString('ja-JP')}
