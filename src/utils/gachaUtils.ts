@@ -1,5 +1,6 @@
 import type { OwnedCard, Rarity, CardMaster } from '../types';
 import { CARDS_BY_RARITY } from './cardMaster';
+import { downloadAndOptimizeImage } from './imageUtils';
 
 // Rarity probabilities: N=50%, R=30%, SR=15%, SSR=5%
 const RARITY_WEIGHTS: { rarity: Rarity; weight: number }[] = [
@@ -271,6 +272,13 @@ export async function regenerateCardImage(prompt: string, config?: ImageConfig):
   const seed = Math.floor(Math.random() * 1000000);
   const { url } = await resolveImageUrl(prompt, seed, config);
   return { imageUrl: url, seed };
+}
+
+export async function generateRegisteredCardImage(prompt: string, config?: ImageConfig): Promise<{ imageUrl: string; seed: number }> {
+  const seed = Math.floor(Math.random() * 1000000);
+  const { url } = await resolveImageUrl(prompt, seed, config);
+  const imageUrl = await downloadAndOptimizeImage(url);
+  return { imageUrl, seed };
 }
 
 export interface GeneratedBy {

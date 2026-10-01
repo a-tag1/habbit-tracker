@@ -74,6 +74,15 @@ export default function SettingsView({
         customSeasons={customSeasons}
         registeredCardImages={registeredCardImages}
         onRegisteredCardImagesChange={onRegisteredCardImagesChange}
+        imageConfig={{
+          provider: imageSettings.provider,
+          hfToken: imageSettings.hfToken || undefined,
+          hfModel: imageSettings.hfModel,
+          cfWorkerUrl: imageSettings.cfWorkerUrl || undefined,
+          cfModel: imageSettings.cfModel,
+          aihordeKey: imageSettings.aihordeKey || undefined,
+          aihordeModel: imageSettings.aihordeModel,
+        }}
         onBack={() => setShowCardImageManager(false)}
       />
     );
