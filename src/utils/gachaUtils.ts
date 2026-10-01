@@ -34,20 +34,34 @@ export function buildImageUrl(prompt: string, seed: number): string {
   return `https://image.pollinations.ai/prompt/${encoded}?width=512&height=768&seed=${seed}&nologo=true`;
 }
 
+async function fetchWithTimeout(input: RequestInfo | URL, init: RequestInit, timeoutMs: number): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(input, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 // Pollinations は生成に時間がかかり、429/5xx で失敗することがあるため、ブラウザキャッシュに載るまで再試行する
-export function preloadImage(url: string, retries = 3, timeoutMs = 60000): Promise<boolean> {
+export function preloadImage(url: string, retries = 1, timeoutMs = 30000): Promise<boolean> {
   if (url.startsWith('data:')) return Promise.resolve(true);
+  const deadline = Date.now() + timeoutMs * (retries + 1);
   const attempt = (n: number): Promise<boolean> => new Promise(resolve => {
+    const remainingMs = deadline - Date.now();
+    if (remainingMs <= 0) { resolve(false); return; }
     const img = new Image();
     let done = false;
-    const timer = setTimeout(() => fail(), timeoutMs);
+    const timer = setTimeout(() => fail(), Math.min(timeoutMs, remainingMs));
     const fail = () => {
       if (done) return;
       done = true;
       clearTimeout(timer);
       img.onload = img.onerror = null;
-      if (n >= retries) { resolve(false); return; }
-      setTimeout(() => attempt(n + 1).then(resolve), 2000 * 2 ** n);
+      const delayMs = Math.min(2000 * 2 ** n, deadline - Date.now());
+      if (n >= retries || delayMs <= 0) { resolve(false); return; }
+      setTimeout(() => attempt(n + 1).then(resolve), delayMs);
     };
     img.onload = () => { if (done) return; done = true; clearTimeout(timer); resolve(true); };
     img.onerror = fail;
@@ -58,7 +72,7 @@ export function preloadImage(url: string, retries = 3, timeoutMs = 60000): Promi
 
 async function buildImageUrlHF(prompt: string, seed: number, token: string, model: string): Promise<string> {
   const fullPrompt = `${prompt}, masterpiece, anime style, trading card format`;
-  const response = await fetch(
+  const response = await fetchWithTimeout(
     `https://router.huggingface.co/hf-inference/models/${model}`,
     {
       method: 'POST',
@@ -67,7 +81,8 @@ async function buildImageUrlHF(prompt: string, seed: number, token: string, mode
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ inputs: fullPrompt, parameters: { seed: seed % 2147483647 } }),
-    }
+    },
+    30000,
   );
   if (!response.ok) throw new Error(`HF API ${response.status}`);
   const blob = await response.blob();
@@ -92,7 +107,7 @@ async function buildImageUrlCF(
 
   const PROXY_URL = workerUrl;
 
-  const response = await fetch(PROXY_URL, {
+  const response = await fetchWithTimeout(PROXY_URL, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -104,7 +119,7 @@ async function buildImageUrlCF(
       width: 512,
       height: 768,
     }),
-  });
+  }, 30000);
 
   if (!response.ok) throw new Error(`Cloudflare Worker API Error: ${response.status}`);
 
@@ -135,7 +150,7 @@ async function buildImageUrlAIHorde(
     apikey: apiKey || '0000000000',
     'Client-Agent': 'habit-tracker:1.0',
   };
-  const submitResponse = await fetch('https://aihorde.net/api/v2/generate/async', {
+  const submitResponse = await fetchWithTimeout('https://aihorde.net/api/v2/generate/async', {
     method: 'POST',
     headers,
     body: JSON.stringify({
@@ -151,15 +166,21 @@ async function buildImageUrlAIHorde(
         cfg_scale: 7,
       },
     }),
-  });
+  }, 15000);
   if (!submitResponse.ok) throw new Error(`AI Horde submit ${submitResponse.status}`);
 
   const job = await submitResponse.json() as { id?: string };
   if (!job.id) throw new Error('AI Horde did not return a job id');
 
-  for (let attempt = 0; attempt < 45; attempt += 1) {
-    await new Promise(resolve => setTimeout(resolve, 4000));
-    const statusResponse = await fetch(`https://aihorde.net/api/v2/generate/status/${job.id}`, { headers });
+  const deadline = Date.now() + 30000;
+  for (let attempt = 0; attempt < 45 && Date.now() < deadline; attempt += 1) {
+    await new Promise(resolve => setTimeout(resolve, Math.min(4000, deadline - Date.now())));
+    if (Date.now() >= deadline) break;
+    const statusResponse = await fetchWithTimeout(
+      `https://aihorde.net/api/v2/generate/status/${job.id}`,
+      { headers },
+      Math.min(15000, deadline - Date.now()),
+    );
     if (!statusResponse.ok) throw new Error(`AI Horde status ${statusResponse.status}`);
     const status = await statusResponse.json() as AIHordeStatus;
     if (status.state === 'done') {

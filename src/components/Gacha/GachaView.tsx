@@ -38,21 +38,25 @@ const RARITY_STYLE: Record<Rarity, { border: string; text: string; glow: string;
 
 const EXAMPLE_THEMES = ['宇宙海賊', '和風妖怪', '魔法学校', '未来都市', '海底王国', '古代文明', 'カフェ&スイーツ', 'サムライ', '西部劇', '北欧神話'];
 
-const AUTO_RETRY_MAX = 3;
+const AUTO_RETRY_MAX = 1;
+const IMAGE_LOAD_TIMEOUT_MS = 30000;
 
 function CardImage({ url, name, rarity }: { url: string; name: string; rarity: Rarity }) {
   const [state, setState] = useState<'loading' | 'loaded' | 'error'>('loading');
   const [retryKey, setRetryKey] = useState(0);
-  const autoRetryRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => () => { if (autoRetryRef.current) clearTimeout(autoRetryRef.current); }, []);
+  useEffect(() => {
+    if (state !== 'loading') return;
+    const timer = window.setTimeout(() => {
+      if (retryKey < AUTO_RETRY_MAX) setRetryKey(key => key + 1);
+      else setState('error');
+    }, IMAGE_LOAD_TIMEOUT_MS);
+    return () => window.clearTimeout(timer);
+  }, [retryKey, state]);
 
   const handleError = () => {
-    if (retryKey < AUTO_RETRY_MAX) {
-      autoRetryRef.current = setTimeout(() => setRetryKey(k => k + 1), 2000 * 2 ** retryKey);
-    } else {
-      setState('error');
-    }
+    if (retryKey < AUTO_RETRY_MAX) setRetryKey(key => key + 1);
+    else setState('error');
   };
 
   return (
@@ -328,11 +332,7 @@ export default function GachaView({
     };
 
     Promise.all([
-      (mode === 'single' ? drawCards(ownedMasterIds, ctx, imgConfig) : drawFocused(ownedMasterIds, ctx, imgConfig))
-        .then(async results => {
-          await Promise.all(results.map(d => preloadImage(d.card.imageUrl)));
-          return results;
-        }),
+      mode === 'single' ? drawCards(ownedMasterIds, ctx, imgConfig) : drawFocused(ownedMasterIds, ctx, imgConfig),
       new Promise<void>(r => { timerRef.current = setTimeout(r, 3000); }),
     ]).then(([results]) => {
       setDraws(results);
