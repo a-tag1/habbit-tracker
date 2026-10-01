@@ -1,5 +1,5 @@
 ﻿import { useState, useEffect, useRef, useMemo } from 'react';
-import type { OwnedCard, Rarity, CustomSeason, CardMaster } from '../../types';
+import type { OwnedCard, Rarity, CustomSeason, CardMaster, RegisteredCardImages } from '../../types';
 import { drawCards, drawFocused, preloadImage, regenerateCardImage, GACHA_COST_SINGLE, GACHA_COST_FOCUSED, GACHA_COST_REGENERATE, DUPLICATE_REFUND, type GachaDraw, type DrawContext, type ImageConfig } from '../../utils/gachaUtils';
 import { CARD_MASTER } from '../../utils/cardMaster';
 import { CARD_MASTER as CARD_MASTER_2, SEASON2_ID } from '../../utils/cardMaster2';
@@ -21,6 +21,8 @@ interface Props {
   onSwitchSeason: (id: string | null) => void;
   // --- プロバイダー設定の拡張 ---
   imageProvider: 'pollinations' | 'huggingface' | 'cloudflare' | 'aihorde';
+  imageSourceMode: 'generate' | 'registered';
+  registeredCardImages: RegisteredCardImages;
   hfToken?: string;
   hfModel?: string;
   cfWorkerUrl?: string;
@@ -228,7 +230,8 @@ function SeasonCreationModal({
 export default function GachaView({
   coins, ownedCards, customSeasons, activeSeasonId,
   onSpendCoins, onAddCards, onAddCoins, onReplaceCard, onCreateSeason, onSwitchSeason,
-  imageProvider, hfToken, hfModel, cfWorkerUrl, cfModel, aihordeKey, aihordeModel,
+  imageProvider, imageSourceMode, registeredCardImages,
+  hfToken, hfModel, cfWorkerUrl, cfModel, aihordeKey, aihordeModel,
 }: Props) {
   const [subTab, setSubTab] = useState<SubTab>('gacha');
   const [phase, setPhase] = useState<GachaPhase>('idle');
@@ -248,11 +251,13 @@ export default function GachaView({
   }, [activeSeasonId, customSeasons]);
 
   const currentSeasonCardsByRarity = useMemo(() => ({
-    N:   currentSeasonMaster.filter(c => c.rarity === 'N'),
-    R:   currentSeasonMaster.filter(c => c.rarity === 'R'),
-    SR:  currentSeasonMaster.filter(c => c.rarity === 'SR'),
-    SSR: currentSeasonMaster.filter(c => c.rarity === 'SSR'),
-  }), [currentSeasonMaster]);
+    N:   currentSeasonMaster.filter(c => c.rarity === 'N' && (imageSourceMode !== 'registered' || (registeredCardImages[c.id]?.length ?? 0) > 0)),
+    R:   currentSeasonMaster.filter(c => c.rarity === 'R' && (imageSourceMode !== 'registered' || (registeredCardImages[c.id]?.length ?? 0) > 0)),
+    SR:  currentSeasonMaster.filter(c => c.rarity === 'SR' && (imageSourceMode !== 'registered' || (registeredCardImages[c.id]?.length ?? 0) > 0)),
+    SSR: currentSeasonMaster.filter(c => c.rarity === 'SSR' && (imageSourceMode !== 'registered' || (registeredCardImages[c.id]?.length ?? 0) > 0)),
+  }), [currentSeasonMaster, imageSourceMode, registeredCardImages]);
+
+  const registeredPoolCount = Object.values(currentSeasonCardsByRarity).reduce((sum, cards) => sum + cards.length, 0);
 
   const ownedMasterIds = useMemo(() => new Set(
     ownedCards
@@ -312,13 +317,18 @@ export default function GachaView({
   };
 
   const executePull = (mode: 'single' | 'focused') => {
+    if (imageSourceMode === 'registered' && registeredPoolCount === 0) return;
     const cost = mode === 'single' ? GACHA_COST_SINGLE : GACHA_COST_FOCUSED;
     if (!onSpendCoins(cost)) return;
     setPullError(false);
     setPhase('pulling');
 
-    const ctx: DrawContext | undefined = activeSeasonId !== null
-      ? { cardPool: currentSeasonCardsByRarity, seasonId: activeSeasonId }
+    const ctx: DrawContext | undefined = activeSeasonId !== null || imageSourceMode === 'registered'
+      ? {
+          cardPool: currentSeasonCardsByRarity,
+          seasonId: activeSeasonId ?? undefined,
+          registeredCardImages: imageSourceMode === 'registered' ? registeredCardImages : undefined,
+        }
       : undefined;
 
     const imgConfig: ImageConfig = {
@@ -571,6 +581,14 @@ export default function GachaView({
                 </div>
               </div>
 
+              {imageSourceMode === 'registered' && (
+                <p className="rounded-lg border border-zinc-700 bg-zinc-800/60 px-3 py-2 text-xs text-zinc-400">
+                  {registeredPoolCount > 0
+                    ? `登録画像から抽選（対象カード ${registeredPoolCount} 種）`
+                    : 'このシーズンに登録画像がありません。設定画面から画像を登録してください。'}
+                </p>
+              )}
+
               {/* ガチャ演出 */}
               <div className="flex items-center justify-center py-2">
                 <div className="w-24 h-24 rounded-full bg-gradient-to-br from-yellow-500/20 via-purple-500/15 to-blue-500/20 border border-zinc-700 flex items-center justify-center">
@@ -596,7 +614,7 @@ export default function GachaView({
               <div className="flex flex-col gap-3">
                 <button
                   onClick={() => executePull('single')}
-                  disabled={coins < GACHA_COST_SINGLE}
+                  disabled={coins < GACHA_COST_SINGLE || (imageSourceMode === 'registered' && registeredPoolCount === 0)}
                   className="w-full py-4 rounded-xl bg-gradient-to-r from-purple-700 to-indigo-700 text-white font-semibold text-sm disabled:opacity-40 active:scale-95 transition-transform"
                 >
                   <div>1回引く</div>
@@ -604,7 +622,7 @@ export default function GachaView({
                 </button>
                 <button
                   onClick={() => executePull('focused')}
-                  disabled={coins < GACHA_COST_FOCUSED}
+                  disabled={coins < GACHA_COST_FOCUSED || (imageSourceMode === 'registered' && registeredPoolCount === 0)}
                   className="w-full py-4 rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 text-white font-semibold text-sm disabled:opacity-40 active:scale-95 transition-transform"
                 >
                   <div>🎯 未取得優先ガチャ</div>

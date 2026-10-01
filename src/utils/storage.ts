@@ -1,4 +1,4 @@
-import type { AppData, Task, HistoryEntry, GachaData, ImageSettings } from '../types';
+import type { AppData, Task, HistoryEntry, GachaData, ImageSettings, RegisteredCardImages } from '../types';
 
 // ─── IndexedDB wrapper ──────────────────────────────────
 const DB_NAME = 'habit-tracker-db';
@@ -45,9 +45,11 @@ async function dbSet<T>(key: string, value: T): Promise<void> {
 const STORAGE_KEY = 'habit-tracker-data';
 const GACHA_STORAGE_KEY = 'habit-tracker-gacha';
 const IMAGE_SETTINGS_KEY = 'habit-tracker-image-settings';
+const REGISTERED_CARD_IMAGES_KEY = 'habit-tracker-registered-card-images';
 
 // ─── Image Settings ─────────────────────────────────────
 export const defaultImageSettings: ImageSettings = {
+  sourceMode: 'generate',
   provider: 'pollinations',
   hfToken: '',
   hfModel: 'stabilityai/stable-diffusion-3-medium-diffusers/black-forest-labs/FLUX.1-schnell',
@@ -69,6 +71,7 @@ function parseImageSettings(parsed: Partial<ImageSettings>): ImageSettings {
     ? (parsed.provider as typeof validProviders[number])
     : 'pollinations';
   return {
+    sourceMode: parsed.sourceMode === 'registered' ? 'registered' : 'generate',
     provider,
     hfToken: typeof parsed.hfToken === 'string' ? parsed.hfToken : '',
     hfModel,
@@ -101,6 +104,19 @@ export async function loadImageSettings(): Promise<ImageSettings> {
 
 export async function saveImageSettings(settings: ImageSettings): Promise<void> {
   await dbSet(IMAGE_SETTINGS_KEY, settings);
+}
+
+export async function loadRegisteredCardImages(): Promise<RegisteredCardImages> {
+  try {
+    const stored = await dbGet<RegisteredCardImages>(REGISTERED_CARD_IMAGES_KEY);
+    return stored && typeof stored === 'object' ? stored : {};
+  } catch {
+    return {};
+  }
+}
+
+export async function saveRegisteredCardImages(images: RegisteredCardImages): Promise<void> {
+  await dbSet(REGISTERED_CARD_IMAGES_KEY, images);
 }
 
 // ─── GachaData ───────────────────────────────────────────

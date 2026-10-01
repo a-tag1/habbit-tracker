@@ -1,7 +1,9 @@
 import { useRef, useState } from 'react';
-import type { AppData, ImageSettings } from '../../types';
+import { ChevronRight, Images } from 'lucide-react';
+import type { AppData, CustomSeason, ImageSettings, RegisteredCardImages } from '../../types';
 import type { ThemeKey } from '../../types';
 import { exportData, importData } from '../../utils/storage';
+import CardImageManager from './CardImageManager';
 
 interface Props {
   data: AppData;
@@ -10,6 +12,9 @@ interface Props {
   onThemeChange: (theme: ThemeKey) => void;
   imageSettings: ImageSettings;
   onImageSettingsChange: (s: ImageSettings) => void;
+  customSeasons: CustomSeason[];
+  registeredCardImages: RegisteredCardImages;
+  onRegisteredCardImagesChange: (images: RegisteredCardImages) => void;
 }
 
 const THEME_OPTIONS: {
@@ -28,10 +33,15 @@ const THEME_OPTIONS: {
   { key: 'sonota-theme', label: 'その他', bg: '#ffffff', fg: '#1616e2', card: '#effff1', border: '#dbfedd', accent: '#f63ba8' },
 ];
 
-export default function SettingsView({ data, onImport, theme, onThemeChange, imageSettings, onImageSettingsChange }: Props) {
+export default function SettingsView({
+  data, onImport, theme, onThemeChange, imageSettings, onImageSettingsChange,
+  customSeasons, registeredCardImages, onRegisteredCardImagesChange,
+}: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [importStatus, setImportStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [errorMsg, setErrorMsg] = useState('');
+  const [showCardImageManager, setShowCardImageManager] = useState(false);
+  const registeredImageCount = Object.values(registeredCardImages).reduce((sum, images) => sum + images.length, 0);
 
   const handleExport = () => {
     exportData(data);
@@ -57,6 +67,17 @@ export default function SettingsView({ data, onImport, theme, onThemeChange, ima
     // ファイル入力をリセット
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
+
+  if (showCardImageManager) {
+    return (
+      <CardImageManager
+        customSeasons={customSeasons}
+        registeredCardImages={registeredCardImages}
+        onRegisteredCardImagesChange={onRegisteredCardImagesChange}
+        onBack={() => setShowCardImageManager(false)}
+      />
+    );
+  }
 
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
@@ -118,6 +139,26 @@ export default function SettingsView({ data, onImport, theme, onThemeChange, ima
         <section>
           <h2 className="text-xs text-zinc-500 font-medium uppercase tracking-wider mb-3">画像生成</h2>
           <div className="border border-zinc-800 bg-zinc-900 rounded-2xl p-4 flex flex-col gap-3">
+            <div className="grid grid-cols-2 gap-1 rounded-xl bg-zinc-800 p-1" role="group" aria-label="ガチャ画像の取得方法">
+              {([
+                { value: 'generate', label: '抽選時に生成' },
+                { value: 'registered', label: '登録画像から抽選' },
+              ] as const).map(option => (
+                <button
+                  key={option.value}
+                  type="button"
+                  aria-pressed={imageSettings.sourceMode === option.value}
+                  onClick={() => onImageSettingsChange({ ...imageSettings, sourceMode: option.value })}
+                  className={`rounded-lg px-2 py-2.5 text-xs font-medium transition-colors ${
+                    imageSettings.sourceMode === option.value ? 'bg-emerald-700 text-white' : 'text-zinc-400'
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+
+            {imageSettings.sourceMode === 'generate' && <>
             {/* プロバイダー選択 */}
             <div className="flex gap-2">
               {(['pollinations', 'huggingface', 'cloudflare', 'aihorde'] as const).map(p => (
@@ -249,6 +290,20 @@ export default function SettingsView({ data, onImport, theme, onThemeChange, ima
                 ? 'Cloudflare Workers AIで生成（Worker URLが必要）'
                 : 'AI Hordeで無料生成（混雑時は待ち時間が長くなります）'}
             </p>
+            </>}
+            <div className="flex items-center justify-between gap-3 border-t border-zinc-800 pt-3">
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-zinc-200">カード画像管理</p>
+                <p className="mt-1 text-xs text-zinc-500">登録画像 {registeredImageCount} 枚</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowCardImageManager(true)}
+                className="flex shrink-0 items-center gap-2 rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2.5 text-xs font-medium text-zinc-200 active:bg-zinc-700"
+              >
+                <Images size={16} /> 管理する <ChevronRight size={15} />
+              </button>
+            </div>
           </div>
         </section>
 
@@ -321,11 +376,11 @@ export default function SettingsView({ data, onImport, theme, onThemeChange, ima
           <div className="border border-zinc-800 bg-zinc-900 rounded-2xl p-4 flex flex-col gap-2">
             <div className="flex justify-between text-sm">
               <span className="text-zinc-400">version</span>
-              <span className="font-mono font-medium text-zinc-100">1.0.20</span>
+              <span className="font-mono font-medium text-zinc-100">1.1.0</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-zinc-400">update</span>
-              <span className="font-mono font-medium text-zinc-100">2026-09-30</span>
+              <span className="font-mono font-medium text-zinc-100">2026-10-01</span>
             </div>
           </div>
         </section>

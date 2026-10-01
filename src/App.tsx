@@ -5,8 +5,8 @@ import { useTheme } from './hooks/useTheme'
 import { useCoin } from './hooks/useCoin'
 import { toDateString } from './utils/dateUtils'
 import { getDayOfWeek } from './utils/dateUtils'
-import type { AppView, TaskStatus, ImageSettings } from './types'
-import { loadImageSettings, saveImageSettings, defaultImageSettings } from './utils/storage'
+import type { AppView, TaskStatus, ImageSettings, RegisteredCardImages } from './types'
+import { loadImageSettings, saveImageSettings, loadRegisteredCardImages, saveRegisteredCardImages, defaultImageSettings } from './utils/storage'
 import DailyView from './components/DailyView/DailyView'
 import TaskList from './components/TaskManager/TaskList'
 import StatisticsView from './components/Statistics/StatisticsView'
@@ -23,12 +23,20 @@ function App() {
   const [currentDate, setCurrentDate] = useState(toDateString(new Date()))
   const { theme, setTheme } = useTheme()
   const [imageSettings, setImageSettings] = useState<ImageSettings>(defaultImageSettings)
+  const [registeredCardImages, setRegisteredCardImages] = useState<RegisteredCardImages>({})
   useEffect(() => {
-    loadImageSettings().then(s => setImageSettings(s))
+    Promise.all([loadImageSettings(), loadRegisteredCardImages()]).then(([settings, images]) => {
+      setImageSettings(settings)
+      setRegisteredCardImages(images)
+    })
   }, [])
   const handleImageSettingsChange = useCallback((s: ImageSettings) => {
     setImageSettings(s)
     saveImageSettings(s)
+  }, [])
+  const handleRegisteredCardImagesChange = useCallback((images: RegisteredCardImages) => {
+    setRegisteredCardImages(images)
+    saveRegisteredCardImages(images)
   }, [])
 
   const navigateTo = useCallback((view: AppView) => {
@@ -162,6 +170,9 @@ function App() {
             onThemeChange={setTheme}
             imageSettings={imageSettings}
             onImageSettingsChange={handleImageSettingsChange}
+            customSeasons={customSeasons}
+            registeredCardImages={registeredCardImages}
+            onRegisteredCardImagesChange={handleRegisteredCardImagesChange}
           />
         )}
         {currentView === 'gacha' && (
@@ -183,6 +194,8 @@ function App() {
             cfModel={imageSettings.cfModel}
             aihordeKey={imageSettings.aihordeKey}
             aihordeModel={imageSettings.aihordeModel}
+            imageSourceMode={imageSettings.sourceMode}
+            registeredCardImages={registeredCardImages}
           />
         )}
         </div>

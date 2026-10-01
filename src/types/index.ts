@@ -84,6 +84,7 @@ export interface GachaData {
 export type ImageProvider = 'pollinations' | 'huggingface' | 'cloudflare' | 'aihorde';
 
 export interface ImageSettings {
+  sourceMode: 'generate' | 'registered';
   provider: ImageProvider;
   hfToken: string;
   hfModel: string;
@@ -94,3 +95,5 @@ export interface ImageSettings {
   aihordeKey?: string;
   aihordeModel?: string;
 }
+
+export type RegisteredCardImages = Record<string, string[]>;

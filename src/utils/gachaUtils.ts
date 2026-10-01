@@ -17,16 +17,26 @@ export const DUPLICATE_REFUND = 25;
 
 export interface DrawContext {
   cardPool: Record<Rarity, CardMaster[]>;
-  seasonId: string;
+  seasonId?: string;
+  registeredCardImages?: Record<string, string[]>;
 }
 
-function pickRarity(): Rarity {
-  let rand = Math.random() * TOTAL_WEIGHT;
-  for (const { rarity, weight } of RARITY_WEIGHTS) {
+function pickRarity(ctx?: DrawContext): Rarity {
+  const available = ctx ? RARITY_WEIGHTS.filter(({ rarity }) => ctx.cardPool[rarity].length > 0) : RARITY_WEIGHTS;
+  const totalWeight = available.reduce((sum, item) => sum + item.weight, 0);
+  let rand = Math.random() * (ctx ? totalWeight : TOTAL_WEIGHT);
+  for (const { rarity, weight } of available) {
     rand -= weight;
     if (rand <= 0) return rarity;
   }
-  return 'N';
+  return available[0]?.rarity ?? 'N';
+}
+
+function getCardPool(rarity: Rarity, ctx?: DrawContext): CardMaster[] {
+  if (!ctx) return CARDS_BY_RARITY[rarity];
+  if (ctx.cardPool[rarity].length > 0) return ctx.cardPool[rarity];
+  const fallbackRarity = RARITY_WEIGHTS.find(({ rarity: candidate }) => ctx.cardPool[candidate].length > 0)?.rarity;
+  return fallbackRarity ? ctx.cardPool[fallbackRarity] : [];
 }
 
 export function buildImageUrl(prompt: string, seed: number): string {
@@ -276,19 +286,24 @@ export interface GachaDraw {
 }
 
 function drawSingle(ownedMasterIds: Set<string>, rarity?: Rarity, ctx?: DrawContext): { master: { id: string; name: string; rarity: Rarity; prompt: string; cheerMessage: string }; seed: number; isDuplicate: boolean; coinRefund: number; seasonId?: string } {
-  const r = rarity ?? pickRarity();
-  const pool = ctx ? ctx.cardPool[r] : CARDS_BY_RARITY[r];
-  // Guard: if rarity pool is empty, fall back to N
-  const safePool = pool.length > 0 ? pool : (ctx ? ctx.cardPool['N'] : CARDS_BY_RARITY['N']);
+  const r = rarity ?? pickRarity(ctx);
+  const safePool = getCardPool(r, ctx);
+  if (safePool.length === 0) throw new Error('抽選できるカードがありません。');
   const master = safePool[Math.floor(Math.random() * safePool.length)];
   const seed = Math.floor(Math.random() * 1000000);
   const isDuplicate = ownedMasterIds.has(master.id);
   return { master, seed, isDuplicate, coinRefund: isDuplicate ? DUPLICATE_REFUND : 0, seasonId: ctx?.seasonId };
 }
 
-async function buildDraw(base: ReturnType<typeof drawSingle>, imageConfig?: ImageConfig): Promise<GachaDraw> {
+async function buildDraw(base: ReturnType<typeof drawSingle>, imageConfig?: ImageConfig, ctx?: DrawContext): Promise<GachaDraw> {
   const { master, seed, isDuplicate, coinRefund, seasonId } = base;
-  const { url: imageUrl, generatedBy } = await resolveImageUrl(master.prompt, seed, imageConfig);
+  const registeredVariants = ctx?.registeredCardImages?.[master.id];
+  const { url: imageUrl, generatedBy } = registeredVariants
+    ? {
+        url: registeredVariants[Math.floor(Math.random() * registeredVariants.length)],
+        generatedBy: { provider: '登録画像', model: 'ライブラリ' },
+      }
+    : await resolveImageUrl(master.prompt, seed, imageConfig);
   const card: OwnedCard = {
     userCardId: `uc_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
     cardMasterId: master.id,
@@ -304,7 +319,7 @@ async function buildDraw(base: ReturnType<typeof drawSingle>, imageConfig?: Imag
 }
 
 export async function drawCards(ownedMasterIds: Set<string>, ctx?: DrawContext, imageConfig?: ImageConfig): Promise<GachaDraw[]> {
-  return [await buildDraw(drawSingle(ownedMasterIds, undefined, ctx), imageConfig)];
+  return [await buildDraw(drawSingle(ownedMasterIds, undefined, ctx), imageConfig, ctx)];
 }
 
 const FOCUSED_UNOWNED_RATE = 0.85;
@@ -333,14 +348,14 @@ export async function drawFocused(ownedMasterIds: Set<string>, ctx?: DrawContext
     const pool = unownedByRarity[selectedRarity];
     master = pool[Math.floor(Math.random() * pool.length)];
   } else {
-    const r = pickRarity();
-    const pool = ctx ? ctx.cardPool[r] : CARDS_BY_RARITY[r];
-    const safePool = pool.length > 0 ? pool : (ctx ? ctx.cardPool['N'] : CARDS_BY_RARITY['N']);
+    const r = pickRarity(ctx);
+    const safePool = getCardPool(r, ctx);
+    if (safePool.length === 0) throw new Error('抽選できるカードがありません。');
     master = safePool[Math.floor(Math.random() * safePool.length)];
   }
 
   const seed = Math.floor(Math.random() * 1000000);
   const isDuplicate = ownedMasterIds.has(master.id);
   const base = { master, seed, isDuplicate, coinRefund: isDuplicate ? DUPLICATE_REFUND : 0, seasonId: ctx?.seasonId };
-  return [await buildDraw(base, imageConfig)];
+  return [await buildDraw(base, imageConfig, ctx)];
 }
