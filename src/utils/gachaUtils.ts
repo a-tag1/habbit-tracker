@@ -268,10 +268,20 @@ async function resolveImageUrl(prompt: string, seed: number, config?: ImageConfi
   return { url, generatedBy: { provider: 'Pollinations.AI', model: 'flux' } };
 }
 
+async function persistGeneratedImage(url: string, generatedBy: GeneratedBy): Promise<string> {
+  if (generatedBy.provider !== 'Pollinations.AI') return url;
+  try {
+    return await downloadAndOptimizeImage(url);
+  } catch {
+    return url;
+  }
+}
+
 export async function regenerateCardImage(prompt: string, config?: ImageConfig): Promise<{ imageUrl: string; seed: number; generatedBy: GeneratedBy }> {
   const seed = Math.floor(Math.random() * 1000000);
   const { url, generatedBy } = await resolveImageUrl(prompt, seed, config);
-  return { imageUrl: url, seed, generatedBy };
+  const imageUrl = await persistGeneratedImage(url, generatedBy);
+  return { imageUrl, seed, generatedBy };
 }
 
 export async function generateRegisteredCardImage(prompt: string, config?: ImageConfig): Promise<{ imageUrl: string; seed: number }> {
@@ -306,12 +316,13 @@ function drawSingle(ownedMasterIds: Set<string>, rarity?: Rarity, ctx?: DrawCont
 async function buildDraw(base: ReturnType<typeof drawSingle>, imageConfig?: ImageConfig, ctx?: DrawContext): Promise<GachaDraw> {
   const { master, seed, isDuplicate, coinRefund, seasonId } = base;
   const registeredVariants = ctx?.registeredCardImages?.[master.id];
-  const { url: imageUrl, generatedBy } = registeredVariants
+  const { url, generatedBy } = registeredVariants
     ? {
         url: registeredVariants[Math.floor(Math.random() * registeredVariants.length)],
         generatedBy: { provider: '登録画像', model: 'ライブラリ' },
       }
     : await resolveImageUrl(master.prompt, seed, imageConfig);
+  const imageUrl = await persistGeneratedImage(url, generatedBy);
   const card: OwnedCard = {
     userCardId: `uc_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
     cardMasterId: master.id,

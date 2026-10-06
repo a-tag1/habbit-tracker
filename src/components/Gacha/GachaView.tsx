@@ -43,6 +43,7 @@ const EXAMPLE_THEMES = ['宇宙海賊', '和風妖怪', '魔法学校', '未来�
 
 const AUTO_RETRY_MAX = 1;
 const IMAGE_LOAD_TIMEOUT_MS = 30000;
+const POLLINATIONS_IMAGE_LOAD_TIMEOUT_MS = 30000;
 type SummonAnimation = 'circle' | 'meteor' | 'lightning' | 'cards' | 'pillar';
 const SUMMON_ANIMATIONS: SummonAnimation[] = ['circle', 'meteor', 'lightning', 'cards', 'pillar'];
 
@@ -53,15 +54,17 @@ function pickSummonAnimation(): SummonAnimation {
 function CardImage({ url, name, rarity }: { url: string; name: string; rarity: Rarity }) {
   const [state, setState] = useState<'loading' | 'loaded' | 'error'>('loading');
   const [retryKey, setRetryKey] = useState(0);
+  const isPollinationsImage = url.startsWith('https://image.pollinations.ai/');
+  const timeoutMs = isPollinationsImage ? POLLINATIONS_IMAGE_LOAD_TIMEOUT_MS : IMAGE_LOAD_TIMEOUT_MS;
 
   useEffect(() => {
     if (state !== 'loading') return;
     const timer = window.setTimeout(() => {
-      if (retryKey < AUTO_RETRY_MAX) setRetryKey(key => key + 1);
+      if (!isPollinationsImage && retryKey < AUTO_RETRY_MAX) setRetryKey(key => key + 1);
       else setState('error');
-    }, IMAGE_LOAD_TIMEOUT_MS);
+    }, timeoutMs);
     return () => window.clearTimeout(timer);
-  }, [retryKey, state]);
+  }, [isPollinationsImage, retryKey, state, timeoutMs]);
 
   const handleError = () => {
     if (retryKey < AUTO_RETRY_MAX) setRetryKey(key => key + 1);
@@ -73,7 +76,10 @@ function CardImage({ url, name, rarity }: { url: string; name: string; rarity: R
       {state !== 'loaded' && (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-gradient-to-br from-indigo-900 to-purple-900">
           {state === 'loading' ? (
-            <div className="w-6 h-6 border-2 border-zinc-500 border-t-white rounded-full animate-spin" />
+            <>
+              <div className="w-6 h-6 border-2 border-zinc-500 border-t-white rounded-full animate-spin" />
+              {isPollinationsImage && <p className="px-2 text-center text-[10px] text-zinc-400">画像を生成しています…</p>}
+            </>
           ) : (
             <>
               <span className="text-2xl">✦</span>
@@ -371,7 +377,10 @@ export default function GachaView({
       const [result] = await Promise.all([
         (async (): Promise<GachaDraw> => {
           const generated = await regenerateCardImage(prompt, imageConfig);
-          if (!await preloadImage(generated.imageUrl)) throw new Error('画像を読み込めませんでした。');
+          const isPollinationsImage = generated.imageUrl.startsWith('https://image.pollinations.ai/');
+          const timeoutMs = isPollinationsImage ? POLLINATIONS_IMAGE_LOAD_TIMEOUT_MS : IMAGE_LOAD_TIMEOUT_MS;
+          const retries = isPollinationsImage ? 0 : AUTO_RETRY_MAX;
+          if (!await preloadImage(generated.imageUrl, retries, timeoutMs)) throw new Error('画像を読み込めませんでした。');
           return {
             card: { ...card, imageUrl: generated.imageUrl, seed: generated.seed },
             isDuplicate: false,
