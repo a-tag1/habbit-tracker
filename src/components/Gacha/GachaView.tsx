@@ -1,4 +1,5 @@
 ﻿import { useState, useEffect, useRef, useMemo } from 'react';
+import { Zap } from 'lucide-react';
 import type { OwnedCard, Rarity, CustomSeason, CardMaster, RegisteredCardImages } from '../../types';
 import { drawCards, drawFocused, preloadImage, regenerateCardImage, GACHA_COST_SINGLE, GACHA_COST_FOCUSED, GACHA_COST_REGENERATE, DUPLICATE_REFUND, type GachaDraw, type DrawContext, type ImageConfig } from '../../utils/gachaUtils';
 import { CARD_MASTER } from '../../utils/cardMaster';
@@ -42,6 +43,12 @@ const EXAMPLE_THEMES = ['宇宙海賊', '和風妖怪', '魔法学校', '未来�
 
 const AUTO_RETRY_MAX = 1;
 const IMAGE_LOAD_TIMEOUT_MS = 30000;
+type SummonAnimation = 'circle' | 'meteor' | 'lightning' | 'cards' | 'pillar';
+const SUMMON_ANIMATIONS: SummonAnimation[] = ['circle', 'meteor', 'lightning', 'cards', 'pillar'];
+
+function pickSummonAnimation(): SummonAnimation {
+  return SUMMON_ANIMATIONS[Math.floor(Math.random() * SUMMON_ANIMATIONS.length)];
+}
 
 function CardImage({ url, name, rarity }: { url: string; name: string; rarity: Rarity }) {
   const [state, setState] = useState<'loading' | 'loaded' | 'error'>('loading');
@@ -112,7 +119,77 @@ function ResultCard({ draw, index }: { draw: GachaDraw; index: number }) {
   );
 }
 
-function MagicCircle({ theme }: { theme?: string }) {
+function SummonVisual({ animation }: { animation: SummonAnimation }) {
+  if (animation === 'circle') {
+    return (
+      <>
+        <div className="absolute inset-0 rounded-full border border-yellow-300/50 border-dashed animate-spin" style={{ animationDuration: '9s' }} />
+        <div className="absolute inset-5 rounded-full border-2 border-purple-400/30 animate-spin" style={{ animationDuration: '5s', animationDirection: 'reverse' }} />
+        <div className="absolute inset-10 rounded-full border border-cyan-300/30 animate-spin" style={{ animationDuration: '7s' }} />
+        {[0, 1, 2, 3].map(index => (
+          <span
+            key={index}
+            className="absolute w-2 h-2 rounded-full bg-yellow-300 shadow-[0_0_10px_3px_rgba(250,204,21,0.6)]"
+            style={{ transform: `rotate(${index * 90}deg) translateY(-96px)`, animation: `spin ${3.5 + index * 0.5}s linear infinite`, animationDelay: `${index * -0.7}s` }}
+          />
+        ))}
+      </>
+    );
+  }
+
+  if (animation === 'meteor') {
+    return (
+      <>
+        {[0, 1, 2, 3, 4, 5].map(index => (
+          <span
+            key={index}
+            className="summon-meteor absolute left-1/2 top-1/2 h-28 w-1 rounded-full bg-gradient-to-b from-white via-cyan-300 to-transparent shadow-[0_0_12px_rgba(103,232,249,0.8)]"
+            style={{ marginLeft: `${(index % 3 - 1) * 48}px`, marginTop: `${(index % 2) * 42 - 20}px`, animationDelay: `${index * -0.38}s` }}
+          />
+        ))}
+        <div className="absolute inset-16 rounded-full border border-cyan-200/50 animate-ping" style={{ animationDuration: '2s' }} />
+      </>
+    );
+  }
+
+  if (animation === 'lightning') {
+    return (
+      <>
+        <div className="summon-flash absolute inset-4 rounded-full bg-cyan-300/20 blur-xl" />
+        <Zap className="absolute left-10 top-8 h-16 w-16 text-cyan-200 drop-shadow-[0_0_14px_rgba(103,232,249,0.9)] summon-lightning" />
+        <Zap className="absolute bottom-8 right-9 h-12 w-12 rotate-180 text-yellow-200 drop-shadow-[0_0_12px_rgba(253,224,71,0.8)] summon-lightning" style={{ animationDelay: '0.7s' }} />
+        <div className="absolute inset-12 rounded-full border-2 border-cyan-100/50 animate-pulse" />
+      </>
+    );
+  }
+
+  if (animation === 'cards') {
+    return (
+      <>
+        {[0, 1, 2, 3, 4].map(index => (
+          <div
+            key={index}
+            className="summon-orbit absolute left-1/2 top-1/2 h-16 w-11 -ml-[22px] -mt-8 rounded-md border border-yellow-200/60 bg-gradient-to-br from-yellow-300/30 via-purple-400/30 to-cyan-300/30 shadow-[0_0_16px_rgba(250,204,21,0.2)]"
+            style={{ animationDelay: `${index * -0.8}s` }}
+          >
+            <span className="absolute inset-1.5 rounded border border-white/20" />
+            <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-yellow-100">✦</span>
+          </div>
+        ))}
+      </>
+    );
+  }
+
+  return (
+    <>
+      <div className="summon-pillar absolute bottom-1/2 left-1/2 h-64 w-24 -translate-x-1/2 rounded-full bg-gradient-to-t from-transparent via-cyan-200/70 to-white blur-md" />
+      <div className="absolute inset-x-4 bottom-8 h-12 rounded-full border border-yellow-100/70 bg-yellow-200/20 shadow-[0_0_32px_rgba(250,204,21,0.6)] animate-pulse" />
+      <div className="absolute inset-0 rounded-full border border-white/30 animate-ping" style={{ animationDuration: '2.5s' }} />
+    </>
+  );
+}
+
+function MagicCircle({ theme, animation }: { theme?: string; animation: SummonAnimation }) {
   const [messageIndex, setMessageIndex] = useState(0);
   const messages = [
     '魔力を集めています',
@@ -132,22 +209,9 @@ function MagicCircle({ theme }: { theme?: string }) {
     <div className="relative flex flex-col items-center justify-center flex-1 gap-5 overflow-hidden bg-[radial-gradient(circle_at_center,_rgba(113,63,18,0.18),_transparent_55%)]">
       <div className="absolute top-1/4 w-72 h-72 rounded-full border border-yellow-400/10 animate-ping" style={{ animationDuration: '4s' }} />
       <div className="relative flex items-center justify-center w-56 h-56">
-        <div className="absolute inset-0 rounded-full border border-yellow-300/50 border-dashed animate-spin" style={{ animationDuration: '9s' }} />
-        <div className="absolute inset-5 rounded-full border-2 border-purple-400/30 animate-spin" style={{ animationDuration: '5s', animationDirection: 'reverse' }} />
-        <div className="absolute inset-10 rounded-full border border-cyan-300/30 animate-spin" style={{ animationDuration: '7s' }} />
+        <SummonVisual animation={animation} />
         <div className="absolute inset-1/2 w-2 h-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-yellow-200 shadow-[0_0_18px_6px_rgba(250,204,21,0.7)]" />
-        {[0, 1, 2, 3].map(orbitIndex => (
-          <span
-            key={orbitIndex}
-            className="absolute w-2 h-2 rounded-full bg-yellow-300 shadow-[0_0_10px_3px_rgba(250,204,21,0.6)]"
-            style={{
-              transform: `rotate(${orbitIndex * 90}deg) translateY(-96px)`,
-              animation: `spin ${3.5 + orbitIndex * 0.5}s linear infinite`,
-              animationDelay: `${orbitIndex * -0.7}s`,
-            }}
-          />
-        ))}
-        <div className="relative w-24 h-32 rounded-xl border border-yellow-300/60 bg-gradient-to-br from-yellow-500/25 via-purple-500/20 to-cyan-500/20 shadow-[0_0_28px_rgba(250,204,21,0.25)] animate-pulse flex items-center justify-center">
+        <div className={`relative w-24 h-32 rounded-xl border border-yellow-300/60 bg-gradient-to-br from-yellow-500/25 via-purple-500/20 to-cyan-500/20 shadow-[0_0_28px_rgba(250,204,21,0.25)] flex items-center justify-center ${animation === 'cards' ? '' : 'animate-pulse'}`}>
           <span className="text-4xl text-yellow-200">✦</span>
           <div className="absolute inset-2 rounded-lg border border-white/10" />
         </div>
@@ -235,6 +299,7 @@ export default function GachaView({
 }: Props) {
   const [subTab, setSubTab] = useState<SubTab>('gacha');
   const [phase, setPhase] = useState<GachaPhase>('idle');
+  const [summonAnimation, setSummonAnimation] = useState<SummonAnimation>('circle');
   const [draws, setDraws] = useState<GachaDraw[]>([]);
   const [regenerationPhase, setRegenerationPhase] = useState<'idle' | 'pulling' | 'reveal'>('idle');
   const [regenerationDraw, setRegenerationDraw] = useState<GachaDraw | null>(null);
@@ -291,6 +356,7 @@ export default function GachaView({
     }
 
     setRegenerationDraw(null);
+    setSummonAnimation(pickSummonAnimation());
     setRegenerationPhase('pulling');
     try {
       const imageConfig: ImageConfig = {
@@ -339,6 +405,7 @@ export default function GachaView({
     const cost = mode === 'single' ? GACHA_COST_SINGLE : GACHA_COST_FOCUSED;
     if (!onSpendCoins(cost)) return;
     setPullError(false);
+    setSummonAnimation(pickSummonAnimation());
     setPhase('pulling');
 
     const ctx: DrawContext | undefined = activeSeasonId !== null || imageSourceMode === 'registered'
@@ -417,7 +484,7 @@ export default function GachaView({
         />
       ) : (
         <div className="flex flex-col flex-1 overflow-hidden">
-          {phase === 'pulling' && <MagicCircle theme={activeSeasonId !== null ? activeSeasonTheme : undefined} />}
+          {phase === 'pulling' && <MagicCircle theme={activeSeasonId !== null ? activeSeasonTheme : undefined} animation={summonAnimation} />}
 
           {phase === 'reveal' && (
             <div className="flex flex-col flex-1 overflow-hidden">
@@ -675,7 +742,7 @@ export default function GachaView({
 
       {subTab === 'collection' && regenerationPhase === 'pulling' && (
         <div className="fixed inset-0 z-[60] flex flex-col bg-zinc-950">
-          <MagicCircle theme={activeSeasonTheme} />
+          <MagicCircle theme={activeSeasonTheme} animation={summonAnimation} />
         </div>
       )}
 

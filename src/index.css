@@ -126,6 +126,42 @@ body {
   100% { transform: translateX(320%); }
 }
 
+@keyframes summon-meteor {
+  0% { opacity: 0; transform: translate(70px, -100px) rotate(35deg) scaleY(0.5); }
+  15% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-90px, 120px) rotate(35deg) scaleY(1.2); }
+}
+
+@keyframes summon-lightning {
+  0%, 100% { opacity: 0.25; transform: scale(0.75) rotate(-8deg); }
+  12%, 24% { opacity: 1; transform: scale(1.08) rotate(4deg); }
+  18%, 30% { opacity: 0.4; }
+}
+
+@keyframes summon-orbit {
+  from { transform: rotate(0deg) translateY(-76px) rotate(0deg); }
+  to { transform: rotate(360deg) translateY(-76px) rotate(-360deg); }
+}
+
+@keyframes summon-pillar {
+  0%, 100% { opacity: 0.2; transform: translateX(-50%) scaleY(0.4); }
+  50% { opacity: 0.9; transform: translateX(-50%) scaleY(1); }
+}
+
+.summon-meteor { animation: summon-meteor 1.8s ease-in infinite; }
+.summon-lightning { animation: summon-lightning 2.2s ease-in-out infinite; }
+.summon-orbit { animation: summon-orbit 5s linear infinite; }
+.summon-pillar { transform-origin: bottom; animation: summon-pillar 2.4s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .summon-meteor,
+  .summon-lightning,
+  .summon-orbit,
+  .summon-pillar {
+    animation-duration: 0.01ms;
+  }
+}
+
 /* ── テーマ変数 ─────────────────────────── */
 
 /* デフォルト（ブラック） */
