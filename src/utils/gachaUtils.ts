@@ -268,10 +268,10 @@ async function resolveImageUrl(prompt: string, seed: number, config?: ImageConfi
   return { url, generatedBy: { provider: 'Pollinations.AI', model: 'flux' } };
 }
 
-export async function regenerateCardImage(prompt: string, config?: ImageConfig): Promise<{ imageUrl: string; seed: number }> {
+export async function regenerateCardImage(prompt: string, config?: ImageConfig): Promise<{ imageUrl: string; seed: number; generatedBy: GeneratedBy }> {
   const seed = Math.floor(Math.random() * 1000000);
-  const { url } = await resolveImageUrl(prompt, seed, config);
-  return { imageUrl: url, seed };
+  const { url, generatedBy } = await resolveImageUrl(prompt, seed, config);
+  return { imageUrl: url, seed, generatedBy };
 }
 
 export async function generateRegisteredCardImage(prompt: string, config?: ImageConfig): Promise<{ imageUrl: string; seed: number }> {

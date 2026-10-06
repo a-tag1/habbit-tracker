@@ -236,6 +236,8 @@ export default function GachaView({
   const [subTab, setSubTab] = useState<SubTab>('gacha');
   const [phase, setPhase] = useState<GachaPhase>('idle');
   const [draws, setDraws] = useState<GachaDraw[]>([]);
+  const [regenerationPhase, setRegenerationPhase] = useState<'idle' | 'pulling' | 'reveal'>('idle');
+  const [regenerationDraw, setRegenerationDraw] = useState<GachaDraw | null>(null);
   const [pullError, setPullError] = useState(false);
   const [showSeasonModal, setShowSeasonModal] = useState(false);
   const [isCreatingSeason, setIsCreatingSeason] = useState(false);
@@ -283,11 +285,13 @@ export default function GachaView({
     ? 'シーズン2'
     : (customSeasons.find(s => s.id === activeSeasonId)?.theme ?? '');
 
-  const handleRegenerateCard = async (card: OwnedCard, prompt: string): Promise<OwnedCard> => {
+  const handleRegenerateCard = async (card: OwnedCard, prompt: string): Promise<GachaDraw> => {
     if (!onSpendCoins(GACHA_COST_REGENERATE)) {
       throw new Error(`コインが不足しています（必要: ${GACHA_COST_REGENERATE}枚）。`);
     }
 
+    setRegenerationDraw(null);
+    setRegenerationPhase('pulling');
     try {
       const imageConfig: ImageConfig = {
         provider: imageProvider,
@@ -298,11 +302,25 @@ export default function GachaView({
         aihordeKey: aihordeKey || undefined,
         aihordeModel,
       };
-      const generated = await regenerateCardImage(prompt, imageConfig);
-      if (!await preloadImage(generated.imageUrl)) throw new Error('画像を読み込めませんでした。');
-      return { ...card, imageUrl: generated.imageUrl, seed: generated.seed };
+      const [result] = await Promise.all([
+        (async (): Promise<GachaDraw> => {
+          const generated = await regenerateCardImage(prompt, imageConfig);
+          if (!await preloadImage(generated.imageUrl)) throw new Error('画像を読み込めませんでした。');
+          return {
+            card: { ...card, imageUrl: generated.imageUrl, seed: generated.seed },
+            isDuplicate: false,
+            coinRefund: 0,
+            generatedBy: generated.generatedBy,
+          };
+        })(),
+        new Promise<void>(resolve => window.setTimeout(resolve, 3000)),
+      ]);
+      setRegenerationDraw(result);
+      setRegenerationPhase('reveal');
+      return result;
     } catch {
       onAddCoins(GACHA_COST_REGENERATE);
+      setRegenerationPhase('idle');
       throw new Error('画像の再生成に失敗しました。50コインを返還しました。通信状態を確認して再度お試しください。');
     }
   };
@@ -653,6 +671,35 @@ export default function GachaView({
           onConfirm={handleCreateSeason}
           isCreating={isCreatingSeason}
         />
+      )}
+
+      {subTab === 'collection' && regenerationPhase === 'pulling' && (
+        <div className="fixed inset-0 z-[60] flex flex-col bg-zinc-950">
+          <MagicCircle theme={activeSeasonTheme} />
+        </div>
+      )}
+
+      {subTab === 'collection' && regenerationPhase === 'reveal' && regenerationDraw && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center overflow-y-auto bg-black/80 px-5 py-6">
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="regeneration-result-title"
+            className="w-full max-w-sm rounded-2xl border border-zinc-700 bg-zinc-900 p-5"
+          >
+            <h2 id="regeneration-result-title" className="mb-4 text-center text-sm font-semibold text-zinc-100">再生成した画像</h2>
+            <div className="mx-auto w-48">
+              <ResultCard draw={regenerationDraw} index={0} />
+            </div>
+            <p className="mt-3 text-center text-xs leading-relaxed text-zinc-300">{regenerationDraw.card.cheerMessage}</p>
+            <button
+              onClick={() => setRegenerationPhase('idle')}
+              className="mt-5 w-full rounded-xl bg-zinc-700 py-3 text-sm font-medium text-zinc-100 hover:bg-zinc-600"
+            >
+              図鑑で変更前と比較する
+            </button>
+          </section>
+        </div>
       )}
     </div>
   );

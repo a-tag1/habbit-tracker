@@ -5,6 +5,7 @@ import { CARD_MASTER } from '../../utils/cardMaster';
 import { CARD_MASTER as CARD_MASTER_2, SEASON2_ID } from '../../utils/cardMaster2';
 import { useSwipe } from '../../hooks/useSwipe';
 import { GACHA_COST_REGENERATE } from '../../utils/gachaUtils';
+import type { GachaDraw } from '../../utils/gachaUtils';
 
 const RARITY_STYLE: Record<Rarity, { border: string; text: string; bg: string }> = {
   N:   { border: 'border-zinc-600',   text: 'text-zinc-400',   bg: 'bg-zinc-800' },
@@ -18,7 +19,7 @@ interface Props {
   customSeasons: CustomSeason[];
   activeSeasonId: string | null;
   coins: number;
-  onRegenerateCard: (card: OwnedCard, prompt: string) => Promise<OwnedCard>;
+  onRegenerateCard: (card: OwnedCard, prompt: string) => Promise<GachaDraw>;
   onReplaceCard: (cardMasterId: string, newCard: OwnedCard) => void;
 }
 
@@ -63,7 +64,8 @@ export default function CollectionView({ ownedCards, customSeasons, activeSeason
     setIsRegenerating(true);
     setRegenerationError('');
     try {
-      setReplacementCandidate(await onRegenerateCard(selected, master.prompt));
+      const result = await onRegenerateCard(selected, master.prompt);
+      setReplacementCandidate(result.card);
     } catch (error) {
       setRegenerationError(error instanceof Error ? error.message : '画像の再生成に失敗しました。');
     } finally {
