@@ -385,11 +385,11 @@ export default function SettingsView({
           <div className="border border-zinc-800 bg-zinc-900 rounded-2xl p-4 flex flex-col gap-2">
             <div className="flex justify-between text-sm">
               <span className="text-zinc-400">version</span>
-              <span className="font-mono font-medium text-zinc-100">1.1.0</span>
+              <span className="font-mono font-medium text-zinc-100">1.1.1</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-zinc-400">update</span>
-              <span className="font-mono font-medium text-zinc-100">2026-10-01</span>
+              <span className="font-mono font-medium text-zinc-100">2026-10-06</span>
             </div>
           </div>
         </section>

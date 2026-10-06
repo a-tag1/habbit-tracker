@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
-import { Check, ChevronDown } from 'lucide-react';
+import { Check, ChevronDown, Info } from 'lucide-react';
 import type { Task, TaskStatus } from '../../types';
 import { getProgressCounter } from '../../utils/statistics';
 import type { HistoryEntry } from '../../types';
 import { TASK_ICON_MAP } from '../../utils/taskIcons';
+import TaskInfoModal from './TaskInfoModal';
 
 interface Props {
   task: Task;
@@ -35,6 +36,7 @@ export default function TaskItem({ task, status, history, dateStr, onComplete, o
   const prevStatus = useRef(status);
   const [justCompleted, setJustCompleted] = useState(false);
   const [expanded, setExpanded] = useState(false);
+  const [showInfo, setShowInfo] = useState(false);
   const hasDetail = task.memoEnabled || task.numberEnabled;
   const memoPreview = memo.trim() ? memo.trim().length > 28 ? `${memo.trim().slice(0, 28).trimEnd()}…` : memo.trim() : '';
 
@@ -77,6 +79,15 @@ export default function TaskItem({ task, status, history, dateStr, onComplete, o
               <span className="text-[10px] opacity-80">{progress.target > 0 ? `${Math.round((progress.current / progress.target) * 100)}%` : '0%'}</span>
             </span>
           )}
+        </button>
+
+        <button
+          onClick={() => setShowInfo(true)}
+          aria-label={`${task.title}の情報`}
+          title="タスク情報"
+          className="shrink-0 px-2 py-3.5 text-zinc-500 hover:text-zinc-200 active:opacity-70"
+        >
+          <Info size={17} />
         </button>
 
         {/* 詳細展開ボタン */}
@@ -166,6 +177,10 @@ export default function TaskItem({ task, status, history, dateStr, onComplete, o
             />
           )}
         </div>
+      )}
+
+      {showInfo && (
+        <TaskInfoModal task={task} history={history} dateStr={dateStr} onClose={() => setShowInfo(false)} />
       )}
     </div>
   );

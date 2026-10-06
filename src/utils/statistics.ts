@@ -1,5 +1,5 @@
 import type { Task, HistoryEntry } from '../types';
-import { getWeekRange, getMonthRange, getDaysInMonth, isDateInRange } from './dateUtils';
+import { getWeekRange, getMonthRange, getDaysInMonth, getDayOfWeek, isDateInRange } from './dateUtils';
 
 /** 指定期間内の完了数を返す */
 export function getCompletedCount(history: HistoryEntry[], taskId: string, start: string, end: string): number {
@@ -34,6 +34,47 @@ export function getProgressCounter(task: Task, history: HistoryEntry[], dateStr:
   }
 
   return null;
+}
+
+export interface TaskProgressRates {
+  completedCount: number;
+  monthlyTarget: number;
+  expectedByDate: number;
+  achievementRate: number;
+  paceRate: number;
+}
+
+/** 月間目標に対する達成率と、選択日までの予定ペースに対する進捗率を返す */
+export function getTaskProgressRates(task: Task, history: HistoryEntry[], dateStr: string): TaskProgressRates {
+  const days = getDaysInMonth(dateStr);
+  const daysThroughDate = days.filter(day => day <= dateStr);
+  const completedCount = getCompletedCount(history, task.id, days[0], dateStr);
+  let monthlyTarget: number;
+  let expectedByDate: number;
+
+  if (task.frequencyType === 'daily') {
+    monthlyTarget = days.length;
+    expectedByDate = daysThroughDate.length;
+  } else if (task.frequencyType === 'weekly' && task.weekDays && task.weekDays.length > 0) {
+    monthlyTarget = days.filter(day => task.weekDays!.includes(getDayOfWeek(day))).length;
+    expectedByDate = daysThroughDate.filter(day => task.weekDays!.includes(getDayOfWeek(day))).length;
+  } else if (task.frequencyType === 'weekly') {
+    const weeksInMonth = new Set(days.map(day => getWeekRange(day).start)).size;
+    const weeksThroughDate = new Set(daysThroughDate.map(day => getWeekRange(day).start)).size;
+    monthlyTarget = task.frequencyCount * weeksInMonth;
+    expectedByDate = task.frequencyCount * weeksThroughDate;
+  } else {
+    monthlyTarget = task.frequencyCount;
+    expectedByDate = monthlyTarget * daysThroughDate.length / days.length;
+  }
+
+  return {
+    completedCount,
+    monthlyTarget,
+    expectedByDate,
+    achievementRate: monthlyTarget > 0 ? Math.round(completedCount / monthlyTarget * 100) : 0,
+    paceRate: expectedByDate > 0 ? Math.round(completedCount / expectedByDate * 100) : 0,
+  };
 }
 
 /** 月次統計：タスクごとの達成率を返す */

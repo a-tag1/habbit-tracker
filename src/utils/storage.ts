@@ -237,6 +237,7 @@ export function createTask(
   difficulty?: Task['difficulty'],
   memoEnabled?: boolean,
   numberEnabled?: boolean,
+  commonMemo?: string,
 ): Task {
   return {
     id: generateId(),
@@ -246,6 +247,7 @@ export function createTask(
     frequencyCount,
     weekDays,
     difficulty,
+    commonMemo,
     memoEnabled,
     numberEnabled,
     order,

@@ -27,15 +27,15 @@ export function useHabits() {
     }
   }, []);
 
-  const addTask = useCallback((title: string, frequencyType: Task['frequencyType'], frequencyCount: number, icon?: string, weekDays?: number[], difficulty?: Task['difficulty'], memoEnabled?: boolean, numberEnabled?: boolean) => {
+  const addTask = useCallback((title: string, frequencyType: Task['frequencyType'], frequencyCount: number, icon?: string, weekDays?: number[], difficulty?: Task['difficulty'], memoEnabled?: boolean, numberEnabled?: boolean, commonMemo?: string) => {
     persist(prev => {
       const order = prev.tasks.length;
-      const task = createTask(title, frequencyType, frequencyCount, order, icon, weekDays, difficulty, memoEnabled, numberEnabled);
+      const task = createTask(title, frequencyType, frequencyCount, order, icon, weekDays, difficulty, memoEnabled, numberEnabled, commonMemo);
       return { ...prev, tasks: [...prev.tasks, task] };
     });
   }, [persist]);
 
-  const updateTask = useCallback((id: string, updates: Partial<Pick<Task, 'title' | 'frequencyType' | 'frequencyCount' | 'icon' | 'weekDays' | 'difficulty' | 'memoEnabled' | 'numberEnabled' | 'paused'>>) => {
+  const updateTask = useCallback((id: string, updates: Partial<Pick<Task, 'title' | 'frequencyType' | 'frequencyCount' | 'icon' | 'weekDays' | 'difficulty' | 'commonMemo' | 'memoEnabled' | 'numberEnabled' | 'paused'>>) => {
     persist(prev => ({
       ...prev,
       tasks: prev.tasks.map(t => t.id === id ? { ...t, ...updates } : t),

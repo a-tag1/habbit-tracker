@@ -10,6 +10,7 @@ export interface Task {
   frequencyCount: number;
   weekDays?: number[];  // weekly 時の対象曜日: 0=日, 1=月, ..., 6=土
   difficulty?: 'normal' | 'hard';
+  commonMemo?: string;
   memoEnabled?: boolean;
   numberEnabled?: boolean;
   paused?: boolean;

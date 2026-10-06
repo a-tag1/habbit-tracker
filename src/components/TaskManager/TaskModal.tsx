@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import type { Task } from '../../types';
 import { TASK_ICON_OPTIONS, TASK_ICON_MAP } from '../../utils/taskIcons';
 
@@ -7,7 +7,7 @@ type Difficulty = Task['difficulty'];
 
 interface Props {
   task?: Task | null;
-  onSave: (title: string, frequencyType: FrequencyType, frequencyCount: number, icon?: string, weekDays?: number[], difficulty?: Difficulty, memoEnabled?: boolean, numberEnabled?: boolean) => void;
+  onSave: (title: string, frequencyType: FrequencyType, frequencyCount: number, icon?: string, weekDays?: number[], difficulty?: Difficulty, memoEnabled?: boolean, numberEnabled?: boolean, commonMemo?: string) => void;
   onClose: () => void;
 }
 
@@ -26,6 +26,7 @@ export default function TaskModal({ task, onSave, onClose }: Props) {
   const [icon, setIcon] = useState<string | undefined>(task?.icon);
   const [weekDays, setWeekDays] = useState<number[]>(task?.weekDays ?? []);
   const [difficulty, setDifficulty] = useState<Difficulty>(task?.difficulty ?? 'normal');
+  const [commonMemo, setCommonMemo] = useState(task?.commonMemo ?? '');
   const [memoEnabled, setMemoEnabled] = useState(task?.memoEnabled ?? false);
   const [numberEnabled, setNumberEnabled] = useState(task?.numberEnabled ?? false);
 
@@ -35,25 +36,12 @@ export default function TaskModal({ task, onSave, onClose }: Props) {
     );
   };
 
-  useEffect(() => {
-    if (task) {
-      setTitle(task.title);
-      setFrequencyType(task.frequencyType);
-      setFrequencyCount(task.frequencyCount);
-      setIcon(task.icon);
-      setWeekDays(task.weekDays ?? []);
-      setDifficulty(task.difficulty ?? 'normal');
-      setMemoEnabled(task.memoEnabled ?? false);
-      setNumberEnabled(task.numberEnabled ?? false);
-    }
-  }, [task]);
-
   const handleSave = () => {
     const trimmed = title.trim();
     if (!trimmed) return;
     if (frequencyType === 'weekly' && weekDays.length === 0) return;
     const effectiveCount = frequencyType === 'weekly' ? weekDays.length : frequencyCount;
-    onSave(trimmed, frequencyType, effectiveCount, icon, frequencyType === 'weekly' ? weekDays : undefined, difficulty, memoEnabled, numberEnabled);
+    onSave(trimmed, frequencyType, effectiveCount, icon, frequencyType === 'weekly' ? weekDays : undefined, difficulty, memoEnabled, numberEnabled, commonMemo.trim());
     onClose();
   };
 
@@ -61,7 +49,7 @@ export default function TaskModal({ task, onSave, onClose }: Props) {
     <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={onClose}>
       <div className="absolute inset-0 bg-black/60" />
       <div
-        className="relative w-full max-w-[480px] bg-zinc-900 rounded-t-2xl px-4 pt-4 pb-8"
+        className="relative w-full max-w-[480px] max-h-[90dvh] overflow-y-auto bg-zinc-900 rounded-t-2xl px-4 pt-4 pb-8"
         onClick={e => e.stopPropagation()}
       >
         <div className="w-10 h-1 bg-zinc-700 rounded-full mx-auto mb-5" />
@@ -100,6 +88,15 @@ export default function TaskModal({ task, onSave, onClose }: Props) {
           placeholder="例：朝の読書"
           className="w-full border border-zinc-700 bg-zinc-800 text-zinc-100 placeholder-zinc-600 rounded-xl px-4 py-3 text-sm outline-none focus:border-emerald-500 transition-colors mb-4"
           autoFocus
+        />
+
+        <label className="block text-xs text-zinc-400 mb-1 font-medium">タスク共通メモ</label>
+        <textarea
+          value={commonMemo}
+          onChange={e => setCommonMemo(e.target.value)}
+          placeholder="タスクについてのメモ"
+          rows={3}
+          className="w-full border border-zinc-700 bg-zinc-800 text-zinc-100 placeholder-zinc-600 rounded-xl px-4 py-3 text-sm outline-none focus:border-emerald-500 transition-colors mb-4 resize-y"
         />
 
         {/* 繰り返し設定 */}

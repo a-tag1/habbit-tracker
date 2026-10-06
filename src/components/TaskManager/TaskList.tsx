@@ -7,8 +7,8 @@ import { TASK_ICON_MAP } from '../../utils/taskIcons';
 
 interface Props {
   tasks: Task[];
-  onAdd: (title: string, frequencyType: Task['frequencyType'], frequencyCount: number, icon?: string, weekDays?: number[], difficulty?: Task['difficulty'], memoEnabled?: boolean, numberEnabled?: boolean) => void;
-  onUpdate: (id: string, updates: Partial<Pick<Task, 'title' | 'frequencyType' | 'frequencyCount' | 'icon' | 'weekDays' | 'difficulty' | 'memoEnabled' | 'numberEnabled' | 'paused'>>) => void;
+  onAdd: (title: string, frequencyType: Task['frequencyType'], frequencyCount: number, icon?: string, weekDays?: number[], difficulty?: Task['difficulty'], memoEnabled?: boolean, numberEnabled?: boolean, commonMemo?: string) => void;
+  onUpdate: (id: string, updates: Partial<Pick<Task, 'title' | 'frequencyType' | 'frequencyCount' | 'icon' | 'weekDays' | 'difficulty' | 'commonMemo' | 'memoEnabled' | 'numberEnabled' | 'paused'>>) => void;
   onDelete: (id: string) => void;
   onReorder: (tasks: Task[]) => void;
 }
@@ -27,11 +27,11 @@ export default function TaskList({ tasks, onAdd, onUpdate, onDelete, onReorder }
     onReorder(reordered);
   };
 
-  const handleSave = (title: string, frequencyType: Task['frequencyType'], frequencyCount: number, icon?: string, weekDays?: number[], difficulty?: Task['difficulty'], memoEnabled?: boolean, numberEnabled?: boolean) => {
+  const handleSave = (title: string, frequencyType: Task['frequencyType'], frequencyCount: number, icon?: string, weekDays?: number[], difficulty?: Task['difficulty'], memoEnabled?: boolean, numberEnabled?: boolean, commonMemo?: string) => {
     if (editingTask) {
-      onUpdate(editingTask.id, { title, frequencyType, frequencyCount, icon, weekDays, difficulty, memoEnabled, numberEnabled });
+      onUpdate(editingTask.id, { title, frequencyType, frequencyCount, icon, weekDays, difficulty, commonMemo, memoEnabled, numberEnabled });
     } else {
-      onAdd(title, frequencyType, frequencyCount, icon, weekDays, difficulty, memoEnabled, numberEnabled);
+      onAdd(title, frequencyType, frequencyCount, icon, weekDays, difficulty, memoEnabled, numberEnabled, commonMemo);
     }
     setEditingTask(null);
   };
