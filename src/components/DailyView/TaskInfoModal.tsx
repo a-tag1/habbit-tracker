@@ -1,3 +1,5 @@
+import { useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import type { HistoryEntry, Task } from '../../types';
 import { formatDisplayDate } from '../../utils/dateUtils';
@@ -27,15 +29,40 @@ function getFrequencyLabel(task: Task): string {
 
 export default function TaskInfoModal({ task, history, dateStr, onClose }: Props) {
   const rates = getTaskProgressRates(task, history, dateStr);
+  const dialogRef = useRef<HTMLDialogElement>(null);
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={onClose}>
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    dialog?.showModal();
+
+    return () => {
+      dialog?.close();
+      document.body.style.overflow = previousOverflow;
+    };
+  }, []);
+
+  return createPortal(
+    <dialog
+      ref={dialogRef}
+      aria-labelledby="task-info-title"
+      className="fixed inset-0 m-0 h-[100dvh] max-h-none w-full max-w-none border-0 bg-transparent p-4 backdrop:bg-transparent open:flex items-center justify-center touch-none"
+      onCancel={event => {
+        event.preventDefault();
+        onClose();
+      }}
+      onKeyDown={event => {
+        if (event.key === 'Escape') {
+          event.preventDefault();
+          onClose();
+        }
+      }}
+      onClick={onClose}
+    >
       <div className="absolute inset-0 bg-black/60" />
       <section
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="task-info-title"
-        className="relative w-full max-w-[480px] max-h-[85dvh] overflow-y-auto bg-zinc-900 rounded-t-2xl px-5 pt-5 pb-8"
+        className="relative w-full max-w-[480px] max-h-[85dvh] overflow-y-auto overscroll-contain touch-auto bg-zinc-900 rounded-lg px-5 pt-5 pb-8"
         onClick={event => event.stopPropagation()}
       >
         <div className="flex items-start justify-between gap-3 mb-5">
@@ -81,6 +108,7 @@ export default function TaskInfoModal({ task, history, dateStr, onClose }: Props
           )}
         </div>
       </section>
-    </div>
+    </dialog>,
+    document.body,
   );
 }
