@@ -22,7 +22,7 @@ const DAY_LABELS = ['日', '月', '火', '水', '木', '金', '土'];
 export default function TaskModal({ task, onSave, onClose }: Props) {
   const [title, setTitle] = useState(task?.title ?? '');
   const [frequencyType, setFrequencyType] = useState<FrequencyType>(task?.frequencyType ?? 'daily');
-  const [frequencyCount, setFrequencyCount] = useState(task?.frequencyCount ?? 1);
+  const [frequencyCount, setFrequencyCount] = useState(String(task?.frequencyCount ?? 1));
   const [icon, setIcon] = useState<string | undefined>(task?.icon);
   const [weekDays, setWeekDays] = useState<number[]>(task?.weekDays ?? []);
   const [difficulty, setDifficulty] = useState<Difficulty>(task?.difficulty ?? 'normal');
@@ -36,11 +36,14 @@ export default function TaskModal({ task, onSave, onClose }: Props) {
     );
   };
 
+  const normalizedFrequencyCount = (value: string) =>
+    Math.min(31, Math.max(1, Number.parseInt(value, 10) || 1));
+
   const handleSave = () => {
     const trimmed = title.trim();
     if (!trimmed) return;
     if (frequencyType === 'weekly' && weekDays.length === 0) return;
-    const effectiveCount = frequencyType === 'weekly' ? weekDays.length : frequencyCount;
+    const effectiveCount = frequencyType === 'weekly' ? weekDays.length : normalizedFrequencyCount(frequencyCount);
     onSave(trimmed, frequencyType, effectiveCount, icon, frequencyType === 'weekly' ? weekDays : undefined, difficulty, memoEnabled, numberEnabled, commonMemo.trim());
     onClose();
   };
@@ -144,26 +147,22 @@ export default function TaskModal({ task, onSave, onClose }: Props) {
             <label className="block text-xs text-zinc-400 mb-2 font-medium">月の目標回数</label>
             <div className="flex items-center gap-3">
               <button
-                onClick={() => setFrequencyCount(c => Math.max(1, c - 1))}
+                onClick={() => setFrequencyCount(String(Math.max(1, normalizedFrequencyCount(frequencyCount) - 1)))}
                 className="w-10 h-10 rounded-full border border-zinc-700 bg-zinc-800 text-zinc-100 flex items-center justify-center text-lg font-light"
               >
                 -
               </button>
               <input
-                type="number"
+                type="text"
+                inputMode="numeric"
                 value={frequencyCount}
-                min={1}
-                max={31}
                 onFocus={e => e.target.select()}
-                onChange={e => {
-                  const normalized = e.target.value.replace(/^0+(?=\d)/, '');
-                  const val = Math.min(31, Math.max(1, parseInt(normalized, 10) || 1));
-                  setFrequencyCount(val);
-                }}
+                onChange={e => setFrequencyCount(e.target.value.replace(/\D/g, ''))}
+                onBlur={() => setFrequencyCount(String(normalizedFrequencyCount(frequencyCount)))}
                 className="flex-1 text-center text-2xl font-mono font-semibold text-zinc-100 bg-transparent border border-zinc-700 rounded-xl py-1 outline-none focus:border-emerald-500 transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               />
               <button
-                onClick={() => setFrequencyCount(c => Math.min(31, c + 1))}
+                onClick={() => setFrequencyCount(String(Math.min(31, normalizedFrequencyCount(frequencyCount) + 1)))}
                 className="w-10 h-10 rounded-full border border-zinc-700 bg-zinc-800 text-zinc-100 flex items-center justify-center text-lg font-light"
               >
                 +
