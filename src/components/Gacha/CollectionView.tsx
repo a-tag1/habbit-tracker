@@ -8,10 +8,10 @@ import { GACHA_COST_REGENERATE } from '../../utils/gachaUtils';
 import type { GachaDraw } from '../../utils/gachaUtils';
 
 const RARITY_STYLE: Record<Rarity, { border: string; text: string; bg: string }> = {
-  N:   { border: 'border-zinc-600',   text: 'text-zinc-400',   bg: 'bg-zinc-800' },
-  R:   { border: 'border-blue-500',   text: 'text-blue-400',   bg: 'bg-blue-950' },
-  SR:  { border: 'border-purple-400', text: 'text-purple-400', bg: 'bg-purple-950' },
-  SSR: { border: 'border-yellow-400', text: 'text-yellow-400', bg: 'bg-yellow-950' },
+  N:   { border: 'theme-rarity-common-border', text: 'theme-rarity-common', bg: 'theme-rarity-common-bg' },
+  R:   { border: 'theme-rarity-rare-border', text: 'theme-rarity-rare', bg: 'theme-rarity-rare-bg' },
+  SR:  { border: 'theme-rarity-super-rare-border', text: 'theme-rarity-super-rare', bg: 'theme-rarity-super-rare-bg' },
+  SSR: { border: 'theme-rarity-ultra-rare-border', text: 'theme-rarity-ultra-rare', bg: 'theme-rarity-ultra-rare-bg' },
 };
 
 interface Props {

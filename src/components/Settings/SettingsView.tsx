@@ -1,15 +1,15 @@
 import { useRef, useState } from 'react';
-import { ChevronRight, Images } from 'lucide-react';
-import type { AppData, CustomSeason, ImageSettings, RegisteredCardImages } from '../../types';
-import type { ThemeKey } from '../../types';
+import { ChevronRight, Copy, Images, RotateCcw } from 'lucide-react';
+import type { AppData, CustomSeason, CustomThemeKey, ImageSettings, RegisteredCardImages, ThemeColors, ThemeSettings } from '../../types';
 import { exportData, importData } from '../../utils/storage';
+import { CUSTOM_THEME_KEYS, DEFAULT_CUSTOM_THEMES, FIXED_THEME_COLORS, THEME_COLOR_GROUPS } from '../../utils/theme';
 import CardImageManager from './CardImageManager';
 
 interface Props {
   data: AppData;
   onImport: (data: AppData) => void;
-  theme: ThemeKey;
-  onThemeChange: (theme: ThemeKey) => void;
+  themeSettings: ThemeSettings;
+  onThemeSettingsChange: (settings: ThemeSettings) => void;
   imageSettings: ImageSettings;
   onImageSettingsChange: (s: ImageSettings) => void;
   customSeasons: CustomSeason[];
@@ -17,24 +17,8 @@ interface Props {
   onRegisteredCardImagesChange: (images: RegisteredCardImages) => void;
 }
 
-const THEME_OPTIONS: {
-  key: ThemeKey;
-  label: string;
-  bg: string;
-  fg: string;
-  card: string;
-  border: string;
-  accent: string;
-}[] = [
-  { key: 'black',      label: 'ブラック',       bg: '#27272a', fg: '#f4f4f5', card: '#18181b', border: '#3f3f46', accent: '#3b82f6' },
-  { key: 'white',      label: 'ホワイト',       bg: '#ffffff', fg: '#18181b', card: '#f4f4f5', border: '#e4e4e7', accent: '#16a34a' },
-  { key: 'blue',       label: 'ブルー',         bg: '#1e293b', fg: '#e2e8f0', card: '#0f172a', border: '#334155', accent: '#3b82f6' },
-  { key: 'white-blue', label: 'ホワイト×ブルー', bg: '#ffffff', fg: '#18181b', card: '#eff6ff', border: '#dbeafe', accent: '#3b82f6' },
-  { key: 'sonota-theme', label: 'その他', bg: '#ffffff', fg: '#1616e2', card: '#effff1', border: '#dbfedd', accent: '#f63ba8' },
-];
-
 export default function SettingsView({
-  data, onImport, theme, onThemeChange, imageSettings, onImageSettingsChange,
+  data, onImport, themeSettings, onThemeSettingsChange, imageSettings, onImageSettingsChange,
   customSeasons, registeredCardImages, onRegisteredCardImagesChange,
 }: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -42,9 +26,21 @@ export default function SettingsView({
   const [errorMsg, setErrorMsg] = useState('');
   const [showCardImageManager, setShowCardImageManager] = useState(false);
   const registeredImageCount = Object.values(registeredCardImages).reduce((sum, images) => sum + images.length, 0);
+  const selectedCustomKey = CUSTOM_THEME_KEYS.includes(themeSettings.activeTheme as CustomThemeKey)
+    ? themeSettings.activeTheme as CustomThemeKey
+    : null;
+  const selectedCustomTheme = selectedCustomKey ? themeSettings.customThemes[selectedCustomKey] : null;
+
+  const updateCustomTheme = (customTheme: typeof selectedCustomTheme) => {
+    if (!selectedCustomKey || !customTheme) return;
+    onThemeSettingsChange({
+      ...themeSettings,
+      customThemes: { ...themeSettings.customThemes, [selectedCustomKey]: customTheme },
+    });
+  };
 
   const handleExport = () => {
-    exportData(data);
+    exportData(data, themeSettings);
   };
 
   const handleImportClick = () => {
@@ -56,7 +52,8 @@ export default function SettingsView({
     if (!file) return;
     try {
       const imported = await importData(file);
-      onImport(imported);
+      onImport(imported.data);
+      if (imported.themeSettings) onThemeSettingsChange(imported.themeSettings);
       setImportStatus('success');
       setTimeout(() => setImportStatus('idle'), 3000);
     } catch (err) {
@@ -98,50 +95,96 @@ export default function SettingsView({
         {/* テーマ選択 */}
         <section>
           <h2 className="text-xs text-[color:var(--text-muted)] font-medium uppercase tracking-wider mb-3">テーマ</h2>
-          <div className="flex gap-3">
-            {THEME_OPTIONS.map(t => {
-              const selected = theme === t.key;
+          <div className="grid grid-cols-5 gap-2">
+            {([
+              { key: 'black' as const, label: '黒系' },
+              { key: 'white-blue' as const, label: '白×青' },
+              ...CUSTOM_THEME_KEYS.map(key => ({ key, label: themeSettings.customThemes[key].name })),
+            ]).map(option => {
+              const selected = themeSettings.activeTheme === option.key;
+              const colors = option.key === 'black' || option.key === 'white-blue'
+                ? FIXED_THEME_COLORS[option.key]
+                : themeSettings.customThemes[option.key].colors;
               return (
                 <button
-                  key={t.key}
-                  onClick={() => onThemeChange(t.key)}
+                  key={option.key}
+                  type="button"
+                  onClick={() => onThemeSettingsChange({ ...themeSettings, activeTheme: option.key })}
                   style={{
-                    background: t.bg,
-                    borderColor: selected ? '#10b981' : t.border,
+                    background: colors.appBg,
+                    borderColor: selected ? colors.primary : colors.border,
                   }}
-                  className="flex-1 flex flex-col items-center gap-3 pt-4 pb-3 rounded-2xl border-2 transition-all active:scale-95"
+                  className="min-w-0 flex flex-col items-center gap-2 rounded-xl border-2 px-1.5 py-2.5 transition-colors"
                 >
-                  {/* ミニUIプレビュー */}
-                  <div className="w-full px-2.5 flex flex-col gap-1.5">
-                    <div style={{ background: t.fg, opacity: 0.18 }} className="h-2 w-3/4 rounded-full" />
-                    <div
-                      style={{ background: t.card, borderColor: t.border }}
-                      className="rounded-xl p-2 flex flex-col gap-1 border"
-                    >
-                      <div style={{ background: t.fg, opacity: 0.75 }} className="h-1.5 rounded-full" />
-                      <div style={{ background: t.fg, opacity: 0.35 }} className="h-1.5 w-2/3 rounded-full" />
-                    </div>
-                    <div
-                      style={{ background: t.card, borderColor: t.border }}
-                      className="rounded-xl p-2 flex flex-col gap-1 border"
-                    >
-                      <div style={{ background: t.fg, opacity: 0.75 }} className="h-1.5 rounded-full" />
-                      <div style={{ background: t.accent, opacity: 0.85 }} className="h-1.5 w-1/2 rounded-full" />
-                    </div>
+                  <div className="flex gap-1">
+                    {[colors.navBg, colors.panelBg, colors.primary, colors.complete, colors.skip].map((color, index) => (
+                      <span key={`${color}-${index}`} className="h-3 w-3 rounded-full" style={{ background: color }} />
+                    ))}
                   </div>
-                  {/* ラベル */}
-                  <div className="flex items-center gap-1.5">
-                    {selected && (
-                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                    )}
-                    <span style={{ color: t.fg }} className="text-[11px] font-medium tracking-wide">
-                      {t.label}
-                    </span>
-                  </div>
+                  <span className="w-full truncate text-center text-[10px] font-medium" style={{ color: colors.textPrimary }}>{option.label}</span>
                 </button>
               );
             })}
           </div>
+
+          {selectedCustomKey && selectedCustomTheme && (
+            <div className="mt-3 rounded-xl border border-zinc-800 bg-zinc-900 p-3">
+              <label className="mb-3 block text-xs font-medium text-zinc-300">
+                テーマ名
+                <input
+                  value={selectedCustomTheme.name}
+                  maxLength={24}
+                  onChange={event => updateCustomTheme({ ...selectedCustomTheme, name: event.target.value })}
+                  className="mt-1.5 w-full rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-emerald-500"
+                />
+              </label>
+              <div className="mb-3 flex gap-2">
+                {(['black', 'white-blue'] as const).map(key => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => updateCustomTheme({ ...selectedCustomTheme, colors: { ...FIXED_THEME_COLORS[key] } })}
+                    className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-zinc-700 bg-zinc-800 px-2 py-2 text-[11px] text-zinc-200 active:bg-zinc-700"
+                  >
+                    <Copy size={13} /> {key === 'black' ? '黒系を複製' : '白×青を複製'}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  aria-label="このテーマを初期化"
+                  title="初期化"
+                  onClick={() => updateCustomTheme(DEFAULT_CUSTOM_THEMES[selectedCustomKey])}
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-zinc-700 bg-zinc-800 text-zinc-200 active:bg-zinc-700"
+                >
+                  <RotateCcw size={15} />
+                </button>
+              </div>
+              <div className="flex flex-col gap-2">
+                {THEME_COLOR_GROUPS.map(group => (
+                  <details key={group.label} className="rounded-lg border border-zinc-800 px-3">
+                    <summary className="cursor-pointer py-2 text-xs font-medium text-zinc-300">{group.label}</summary>
+                    <div className="grid grid-cols-2 gap-x-3 gap-y-2 pb-3">
+                      {group.fields.map(field => (
+                        <label key={field.key} className="flex min-w-0 items-center justify-between gap-2 text-[11px] text-zinc-400">
+                          <span className="truncate">{field.label}</span>
+                          <input
+                            type="color"
+                            aria-label={field.label}
+                            value={selectedCustomTheme.colors[field.key]}
+                            onChange={event => updateCustomTheme({
+                              ...selectedCustomTheme,
+                              colors: { ...selectedCustomTheme.colors, [field.key]: event.target.value } as ThemeColors,
+                            })}
+                            className="h-7 w-9 shrink-0 cursor-pointer rounded border border-zinc-700 bg-transparent p-0.5"
+                          />
+                        </label>
+                      ))}
+                    </div>
+                  </details>
+                ))}
+              </div>
+            </div>
+          )}
         </section>
 
 {/* 画像生成設定 */}
@@ -385,11 +428,11 @@ export default function SettingsView({
           <div className="border border-zinc-800 bg-zinc-900 rounded-2xl p-4 flex flex-col gap-2">
             <div className="flex justify-between text-sm">
               <span className="text-zinc-400">version</span>
-              <span className="font-mono font-medium text-zinc-100">1.1.3</span>
+              <span className="font-mono font-medium text-zinc-100">1.2.0</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-zinc-400">update</span>
-              <span className="font-mono font-medium text-zinc-100">2026-10-08</span>
+              <span className="font-mono font-medium text-zinc-100">2026-10-09</span>
             </div>
           </div>
         </section>

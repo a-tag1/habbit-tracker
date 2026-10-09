@@ -21,7 +21,7 @@ function App() {
   const [slideDir, setSlideDir] = useState<'left' | 'right' | null>(null)
   const [viewKey, setViewKey] = useState(0)
   const [currentDate, setCurrentDate] = useState(toDateString(new Date()))
-  const { theme, setTheme } = useTheme()
+  const { themeSettings, setThemeSettings } = useTheme()
   const [imageSettings, setImageSettings] = useState<ImageSettings>(defaultImageSettings)
   const [registeredCardImages, setRegisteredCardImages] = useState<RegisteredCardImages>({})
   useEffect(() => {
@@ -166,8 +166,8 @@ function App() {
           <SettingsView
             data={data}
             onImport={importAppData}
-            theme={theme}
-            onThemeChange={setTheme}
+            themeSettings={themeSettings}
+            onThemeSettingsChange={setThemeSettings}
             imageSettings={imageSettings}
             onImageSettingsChange={handleImageSettingsChange}
             customSeasons={customSeasons}

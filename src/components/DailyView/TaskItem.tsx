@@ -55,6 +55,7 @@ export default function TaskItem({ task, status, history, dateStr, onComplete, o
         {/* 左エリア: 完了トグル */}
         <button
           onClick={() => onComplete(task)}
+          style={{ color: status === 'completed' ? 'var(--theme-complete-text, var(--text-primary))' : status === 'skipped' ? 'var(--theme-skip-text, var(--text-muted))' : undefined }}
           className={`flex-1 flex items-center gap-3 px-4 py-3.5 min-w-0 active:opacity-70 text-left ${LEFT_STYLES[status]}`}
         >
           {task.icon && (() => {
@@ -62,8 +63,8 @@ export default function TaskItem({ task, status, history, dateStr, onComplete, o
             return Icon ? <Icon size={20} strokeWidth={1.5} className="shrink-0 opacity-70" /> : null;
           })()}
           {status === 'completed' ? (
-            <span className="w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center shrink-0">
-              <Check size={13} strokeWidth={3} className="text-white" />
+            <span style={{ backgroundColor: 'var(--theme-complete, var(--color-emerald-500))' }} className="w-5 h-5 rounded-full flex items-center justify-center shrink-0">
+              <Check size={13} strokeWidth={3} style={{ color: 'var(--theme-complete-text, #ffffff)' }} />
             </span>
           ) : (
             <span className="text-sm font-mono w-5 flex items-center justify-center shrink-0 opacity-70">
@@ -107,6 +108,7 @@ export default function TaskItem({ task, status, history, dateStr, onComplete, o
         <button
           onClick={() => onSkip(task)}
           aria-label="やらない"
+            style={{ color: status === 'skipped' ? 'var(--theme-skip-text, var(--text-muted))' : status === 'completed' ? 'var(--theme-complete)' : undefined }}
           className={`shrink-0 pr-4 pl-2 py-3.5 transition-colors active:opacity-70 ${
             status === 'skipped'
               ? 'text-amber-500'

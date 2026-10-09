@@ -21,20 +21,25 @@ export default function StatusModal({ task, currentStatus, onSelect, onClose }: 
     >
       <div className="absolute inset-0 bg-black/30" />
       <div
-        className="relative w-full max-w-[480px] bg-white rounded-t-2xl px-4 pt-4 pb-8 safe-area-pb"
+        className="relative w-full max-w-[480px] bg-zinc-900 rounded-t-2xl px-4 pt-4 pb-8 safe-area-pb"
         onClick={e => e.stopPropagation()}
       >
-        <div className="w-10 h-1 bg-gray-300 rounded-full mx-auto mb-4" />
-        <p className="text-center text-sm text-gray-500 mb-4 font-medium">{task.title}</p>
+        <div className="w-10 h-1 bg-zinc-700 rounded-full mx-auto mb-4" />
+        <p className="text-center text-sm text-zinc-400 mb-4 font-medium">{task.title}</p>
         <div className="flex flex-col gap-2">
           {OPTIONS.map(opt => (
             <button
               key={opt.status}
               onClick={() => onSelect(opt.status)}
+              style={currentStatus === opt.status ? {
+                backgroundColor: `var(--theme-${opt.status === 'completed' ? 'complete' : opt.status === 'skipped' ? 'skip' : 'primary'})`,
+                color: `var(--theme-${opt.status === 'completed' ? 'complete-text' : opt.status === 'skipped' ? 'skip-text' : 'primary-text'})`,
+                borderColor: 'transparent',
+              } : undefined}
               className={`flex items-center gap-3 w-full px-4 py-3.5 rounded-xl border text-sm font-medium transition-all ${
                 currentStatus === opt.status
-                  ? 'bg-black text-white border-black'
-                  : 'bg-white text-gray-800 border-gray-200 active:bg-gray-50'
+                  ? ''
+                  : 'bg-zinc-800 text-zinc-200 border-zinc-700 active:bg-zinc-700'
               }`}
             >
               <span className="w-6 text-center font-mono">{opt.icon}</span>

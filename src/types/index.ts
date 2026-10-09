@@ -34,7 +34,47 @@ export interface AppData {
 
 export type AppView = 'daily' | 'statistics' | 'settings' | 'tasks' | 'gacha';
 
-export type ThemeKey = 'black' | 'white' | 'blue' | 'white-blue' | 'sonota-theme';
+export type CustomThemeKey = 'custom-1' | 'custom-2' | 'custom-3';
+
+export type ThemeKey = 'black' | 'white-blue' | CustomThemeKey;
+
+export interface ThemeColors {
+  appBg: string;
+  navBg: string;
+  panelBg: string;
+  panelBgSoft: string;
+  navText: string;
+  textPrimary: string;
+  textSecondary: string;
+  textMuted: string;
+  border: string;
+  primary: string;
+  primaryText: string;
+  cancel: string;
+  cancelText: string;
+  complete: string;
+  completeText: string;
+  skip: string;
+  skipText: string;
+  warning: string;
+  danger: string;
+  info: string;
+  reward: string;
+  rarityCommon: string;
+  rarityRare: string;
+  raritySuperRare: string;
+  rarityUltraRare: string;
+}
+
+export interface CustomTheme {
+  name: string;
+  colors: ThemeColors;
+}
+
+export interface ThemeSettings {
+  activeTheme: ThemeKey;
+  customThemes: Record<CustomThemeKey, CustomTheme>;
+}
 
 // ─── Gacha / Coin ────────────────────────────────────────
 

@@ -119,13 +119,14 @@ export default function DailyView({ tasks, history, currentDate, onDateChange, o
                 aria-label="ガチャへ"
               >
                 <span className="text-sm leading-none">🪙</span>
-                <span className="text-xs font-mono font-bold text-yellow-400">{coins}</span>
+                <span style={{ color: 'var(--theme-reward)' }} className="text-xs font-mono font-bold">{coins}</span>
               </button>
               {/* コイン獲得アニメーション */}
               {lastCoinGain > 0 && (
                 <span
                   key={gainKey}
-                  className="coin-float absolute -top-5 left-1/2 -translate-x-1/2 text-xs font-bold text-yellow-400 whitespace-nowrap pointer-events-none"
+                  style={{ color: 'var(--theme-reward)' }}
+                  className="coin-float absolute -top-5 left-1/2 -translate-x-1/2 text-xs font-bold whitespace-nowrap pointer-events-none"
                 >
                   +{lastCoinGain}🪙
                 </span>

@@ -24,7 +24,7 @@ export default function BottomNav({ current, onChange }: Props) {
             current === item.view ? 'text-zinc-100' : 'text-zinc-600'
           }`}
         >
-          <span className={`text-base leading-none ${item.view === 'gacha' && current === item.view ? 'text-yellow-400' : ''}`}>
+          <span style={item.view === 'gacha' && current === item.view ? { color: 'var(--theme-reward)' } : undefined} className="text-base leading-none">
             {item.icon}
           </span>
           <span className="text-[10px] font-medium">{item.label}</span>

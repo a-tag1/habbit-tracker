@@ -164,6 +164,29 @@ body {
 
 /* ── テーマ変数 ─────────────────────────── */
 
+.nav-surface {
+  background-color: var(--nav-bg);
+  color: var(--nav-text, var(--app-color));
+}
+
+.theme-cancel-button {
+  background-color: var(--theme-cancel);
+  color: var(--theme-cancel-text);
+}
+
+.theme-rarity-common { color: var(--theme-rarity-common); }
+.theme-rarity-common-border { border-color: var(--theme-rarity-common); }
+.theme-rarity-common-bg { background-color: color-mix(in srgb, var(--theme-rarity-common) 22%, var(--panel-bg)); }
+.theme-rarity-rare { color: var(--theme-rarity-rare); }
+.theme-rarity-rare-border { border-color: var(--theme-rarity-rare); }
+.theme-rarity-rare-bg { background-color: color-mix(in srgb, var(--theme-rarity-rare) 22%, var(--panel-bg)); }
+.theme-rarity-super-rare { color: var(--theme-rarity-super-rare); }
+.theme-rarity-super-rare-border { border-color: var(--theme-rarity-super-rare); }
+.theme-rarity-super-rare-bg { background-color: color-mix(in srgb, var(--theme-rarity-super-rare) 22%, var(--panel-bg)); }
+.theme-rarity-ultra-rare { color: var(--theme-rarity-ultra-rare); }
+.theme-rarity-ultra-rare-border { border-color: var(--theme-rarity-ultra-rare); }
+.theme-rarity-ultra-rare-bg { background-color: color-mix(in srgb, var(--theme-rarity-ultra-rare) 22%, var(--panel-bg)); }
+
 /* デフォルト（ブラック） */
 :root {
   --app-bg: #27272a;

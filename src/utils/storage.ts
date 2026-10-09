@@ -1,4 +1,5 @@
-import type { AppData, Task, HistoryEntry, GachaData, ImageSettings, RegisteredCardImages } from '../types';
+import type { AppData, Task, HistoryEntry, GachaData, ImageSettings, RegisteredCardImages, ThemeSettings } from '../types';
+import { normalizeThemeSettings } from './theme';
 
 // ─── IndexedDB wrapper ──────────────────────────────────
 const DB_NAME = 'habit-tracker-db';
@@ -192,8 +193,8 @@ export async function saveData(data: AppData): Promise<void> {
   await dbSet(STORAGE_KEY, data);
 }
 
-export function exportData(data: AppData): void {
-  const json = JSON.stringify(data, null, 2);
+export function exportData(data: AppData, themeSettings: ThemeSettings): void {
+  const json = JSON.stringify({ format: 'habit-tracker-backup', version: 2, data, themeSettings }, null, 2);
   const blob = new Blob([json], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -203,17 +204,37 @@ export function exportData(data: AppData): void {
   URL.revokeObjectURL(url);
 }
 
-export function importData(file: File): Promise<AppData> {
+export interface ImportedBackup {
+  data: AppData;
+  themeSettings?: ThemeSettings;
+}
+
+export function importData(file: File): Promise<ImportedBackup> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
-        const parsed = JSON.parse(e.target?.result as string) as AppData;
-        if (!Array.isArray(parsed.tasks) || !Array.isArray(parsed.history)) {
+        const parsed = JSON.parse(e.target?.result as string) as unknown;
+        if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
           reject(new Error('無効なデータ形式です'));
           return;
         }
-        resolve(parsed);
+        const backup = parsed as Record<string, unknown>;
+        const data = backup.format === 'habit-tracker-backup' ? backup.data : parsed;
+        if (typeof data !== 'object' || data === null || !Array.isArray((data as AppData).tasks) || !Array.isArray((data as AppData).history)) {
+          reject(new Error('無効なデータ形式です'));
+          return;
+        }
+        if (backup.format === 'habit-tracker-backup') {
+          const themeSettings = normalizeThemeSettings(backup.themeSettings);
+          if (backup.version !== 2 || !themeSettings) {
+            reject(new Error('テーマ設定を含むバックアップ形式が無効です'));
+            return;
+          }
+          resolve({ data: data as AppData, themeSettings });
+          return;
+        }
+        resolve({ data: data as AppData });
       } catch {
         reject(new Error('JSONの解析に失敗しました'));
       }

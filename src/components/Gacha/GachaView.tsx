@@ -33,10 +33,10 @@ interface Props {
 }
 
 const RARITY_STYLE: Record<Rarity, { border: string; text: string; glow: string; label: string }> = {
-  N:   { border: 'border-zinc-500',  text: 'text-zinc-400',   glow: '',                    label: 'N' },
-  R:   { border: 'border-blue-500',  text: 'text-blue-400',   glow: 'shadow-blue-500/40',  label: 'R' },
-  SR:  { border: 'border-purple-400',text: 'text-purple-400', glow: 'shadow-purple-500/50',label: 'SR' },
-  SSR: { border: 'border-yellow-400',text: 'text-yellow-400', glow: 'shadow-yellow-400/60',label: 'SSR' },
+  N:   { border: 'theme-rarity-common-border', text: 'theme-rarity-common', glow: '', label: 'N' },
+  R:   { border: 'theme-rarity-rare-border', text: 'theme-rarity-rare', glow: 'shadow-blue-500/40', label: 'R' },
+  SR:  { border: 'theme-rarity-super-rare-border', text: 'theme-rarity-super-rare', glow: 'shadow-purple-500/50', label: 'SR' },
+  SSR: { border: 'theme-rarity-ultra-rare-border', text: 'theme-rarity-ultra-rare', glow: 'shadow-yellow-400/60', label: 'SSR' },
 };
 
 const EXAMPLE_THEMES = ['宇宙海賊', '和風妖怪', '魔法学校', '未来都市', '海底王国', '古代文明', 'カフェ&スイーツ', 'サムライ', '西部劇', '北欧神話'];
@@ -115,7 +115,7 @@ function ResultCard({ draw, index }: { draw: GachaDraw; index: number }) {
       <div className="px-2 py-1.5">
         <div className="flex items-center justify-between gap-1">
           <span className={`text-[10px] font-bold ${style.text}`}>{style.label}</span>
-          {isDuplicate && <span className="text-[10px] text-yellow-400 font-bold">被り +{coinRefund}🪙</span>}
+          {isDuplicate && <span style={{ color: 'var(--theme-reward)' }} className="text-[10px] font-bold">被り +{coinRefund}🪙</span>}
         </div>
         <p className="text-[11px] text-zinc-200 font-medium leading-tight mt-0.5 truncate">{card.name}</p>
         <p className="text-[9px] text-zinc-500 mt-0.5 leading-tight truncate">{generatedBy.provider}</p>
@@ -227,7 +227,7 @@ function MagicCircle({ theme, animation }: { theme?: string; animation: SummonAn
           <div
             key={rarity}
             className={`w-9 h-12 rounded-md border flex items-center justify-center text-[10px] font-bold animate-bounce ${
-              rarity === 'SSR' ? 'border-yellow-400/70 text-yellow-300' : rarity === 'R' ? 'border-blue-400/60 text-blue-300' : 'border-zinc-500/60 text-zinc-400'
+              rarity === 'SSR' ? 'theme-rarity-ultra-rare-border theme-rarity-ultra-rare' : rarity === 'R' ? 'theme-rarity-rare-border theme-rarity-rare' : 'theme-rarity-common-border theme-rarity-common'
             }`}
             style={{ animationDelay: `${rarityIndex * 180}ms`, animationDuration: '1.6s' }}
           >
@@ -283,7 +283,7 @@ function SeasonCreationModal({
           ))}
         </div>
         <div className="flex gap-2">
-          <button onClick={onClose} className="flex-1 py-3 rounded-xl bg-zinc-800 text-zinc-400 text-sm">キャンセル</button>
+          <button onClick={onClose} className="theme-cancel-button flex-1 py-3 rounded-xl text-sm">キャンセル</button>
           <button
             onClick={() => input.trim() && onConfirm(input.trim())}
             disabled={!input.trim() || isCreating}
@@ -466,7 +466,7 @@ export default function GachaView({
           <h1 className="font-semibold text-base text-zinc-100">ガチャ</h1>
           <div className="flex items-center gap-1.5 bg-zinc-800 rounded-full px-3 py-1">
             <span className="text-sm">🪙</span>
-            <span className="text-sm font-mono font-bold text-yellow-400">{coins}</span>
+            <span style={{ color: 'var(--theme-reward)' }} className="text-sm font-mono font-bold">{coins}</span>
           </div>
         </div>
         <div className="flex rounded-xl bg-zinc-800 p-0.5 gap-0.5">
@@ -504,7 +504,7 @@ export default function GachaView({
                     <div className={`px-4 py-3 rounded-xl bg-zinc-800 border ${RARITY_STYLE[draws[0].card.rarity].border} max-w-xs w-full`}>
                       <p className="text-xs text-zinc-300 text-center leading-relaxed">{draws[0].card.cheerMessage}</p>
                     </div>
-                    {totalRefund > 0 && <p className="text-xs text-yellow-400">被りにつき {totalRefund}🪙 還元されました</p>}
+                    {totalRefund > 0 && <p style={{ color: 'var(--theme-reward)' }} className="text-xs">被りにつき {totalRefund}🪙 還元されました</p>}
                   </div>
                 )}
                 {uniqueDuplicateDraws.length > 0 && (
@@ -671,7 +671,7 @@ export default function GachaView({
                 </div>
                 <div className="text-right">
                   <p className="text-xs text-zinc-500">取得枚数</p>
-                  <p className="text-sm font-mono font-bold text-yellow-400 mt-0.5">{ownedMasterIds.size} / {currentSeasonMaster.length}</p>
+                  <p style={{ color: 'var(--theme-reward)' }} className="text-sm font-mono font-bold mt-0.5">{ownedMasterIds.size} / {currentSeasonMaster.length}</p>
                 </div>
               </div>
 
