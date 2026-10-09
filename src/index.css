@@ -169,6 +169,10 @@ body {
   color: var(--nav-text, var(--app-color));
 }
 
+.nav-surface h1 {
+  color: var(--nav-text, var(--text-primary)) !important;
+}
+
 .theme-cancel-button {
   background-color: var(--theme-cancel);
   color: var(--theme-cancel-text);

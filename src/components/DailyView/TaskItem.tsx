@@ -88,7 +88,7 @@ export default function TaskItem({ task, status, history, dateStr, onComplete, o
           title="タスク情報"
           className="shrink-0 px-2 py-3.5 text-zinc-500 hover:text-zinc-200 active:opacity-70"
         >
-          <Info size={17} />
+          <Info size={17} style={{ color: 'var(--theme-info)' }} />
         </button>
 
         {/* 詳細展開ボタン */}
@@ -111,7 +111,7 @@ export default function TaskItem({ task, status, history, dateStr, onComplete, o
             style={{ color: status === 'skipped' ? 'var(--theme-skip-text, var(--text-muted))' : status === 'completed' ? 'var(--theme-complete)' : undefined }}
           className={`shrink-0 pr-4 pl-2 py-3.5 transition-colors active:opacity-70 ${
             status === 'skipped'
-              ? 'text-amber-500'
+              ? 'text-zinc-200'
               : status === 'completed'
               ? 'text-emerald-700'
               : 'text-zinc-600 hover:text-zinc-400'

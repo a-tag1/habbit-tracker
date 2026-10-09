@@ -728,12 +728,12 @@ export default function GachaView({
               <div className="bg-zinc-800/60 rounded-xl px-4 py-3">
                 <p className="text-xs text-zinc-400 font-medium mb-2">🪙 コイン獲得方法</p>
                 <div className="space-y-1.5 text-xs text-zinc-500">
-                  <div className="flex justify-between"><span>タスク1個完了</span><span className="text-yellow-500">+5</span></div>
-                  <div className="flex justify-between"><span>ハードタスク1個完了</span><span className="text-yellow-500">+10</span></div>
-                  <div className="flex justify-between"><span>5個完了ボーナス（1日1回）</span><span className="text-yellow-500">+10</span></div>
-                  <div className="flex justify-between"><span>10個完了ボーナス（1日1回）</span><span className="text-yellow-500">+20</span></div>
-                  <div className="flex justify-between"><span>デイリーコンプリート（1日1回）</span><span className="text-yellow-500">+20</span></div>
-                  <div className="flex justify-between"><span>被りカード還元</span><span className="text-yellow-500">+{DUPLICATE_REFUND}</span></div>
+                  <div className="flex justify-between"><span>タスク1個完了</span><span style={{ color: 'var(--theme-reward)' }}>+5</span></div>
+                  <div className="flex justify-between"><span>ハードタスク1個完了</span><span style={{ color: 'var(--theme-reward)' }}>+10</span></div>
+                  <div className="flex justify-between"><span>5個完了ボーナス（1日1回）</span><span style={{ color: 'var(--theme-reward)' }}>+10</span></div>
+                  <div className="flex justify-between"><span>10個完了ボーナス（1日1回）</span><span style={{ color: 'var(--theme-reward)' }}>+20</span></div>
+                  <div className="flex justify-between"><span>デイリーコンプリート（1日1回）</span><span style={{ color: 'var(--theme-reward)' }}>+20</span></div>
+                  <div className="flex justify-between"><span>被りカード還元</span><span style={{ color: 'var(--theme-reward)' }}>+{DUPLICATE_REFUND}</span></div>
                 </div>
               </div>
             </div>

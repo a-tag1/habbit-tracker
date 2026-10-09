@@ -49,7 +49,7 @@ export const FIXED_THEME_COLORS: Record<'black' | 'white-blue', ThemeColors> = {
     rarityCommon: '#a1a1aa', rarityRare: '#60a5fa', raritySuperRare: '#c084fc', rarityUltraRare: '#facc15',
   },
   'white-blue': {
-    appBg: '#ffffff', navBg: '#1e3a8a', panelBg: '#f8fbff', panelBgSoft: '#eff6ff', navText: '#e2e8f0',
+    appBg: '#ffffff', navBg: '#1e3a8a', panelBg: '#f8fbff', panelBgSoft: '#eff6ff', navText: '#ffffff',
     textPrimary: '#111827', textSecondary: '#1e3a8a', textMuted: '#334155', border: '#bfdbfe',
     primary: '#2563eb', primaryText: '#ffffff', cancel: '#1e3a8a', cancelText: '#ffffff',
     complete: '#3b82f6', completeText: '#2563eb', skip: '#d97706', skipText: '#b45309',
@@ -193,9 +193,12 @@ function themeVariables(colors: ThemeColors): Record<string, string> {
   for (const shade of [50, 100, 200, 300]) vars[`--color-emerald-${shade}`] = colors.primaryText;
   for (const shade of [400, 500]) vars[`--color-emerald-${shade}`] = shade === 500 ? colors.complete : colors.completeText;
   for (const shade of [600, 700, 800, 900, 950]) vars[`--color-emerald-${shade}`] = colors.primary;
-  for (const shade of [400, 500, 600]) vars[`--color-amber-${shade}`] = colors.skip;
-  for (const shade of [400, 500, 600]) vars[`--color-red-${shade}`] = colors.danger;
-  for (const shade of [400, 500, 600]) vars[`--color-rose-${shade}`] = colors.danger;
+  for (const shade of [400, 500, 600]) vars[`--color-amber-${shade}`] = colors.warning;
+  for (const shade of [300, 400, 500, 600, 700, 800, 900, 950]) {
+    const dangerShade = shade < 700 ? colors.danger : `color-mix(in srgb, ${colors.danger} 28%, ${colors.panelBg})`;
+    vars[`--color-red-${shade}`] = dangerShade;
+    vars[`--color-rose-${shade}`] = dangerShade;
+  }
   for (const shade of [300, 400, 500, 600, 700, 800, 900, 950]) {
     vars[`--color-yellow-${shade}`] = shade < 700 ? colors.rarityUltraRare : `color-mix(in srgb, ${colors.rarityUltraRare} 28%, ${colors.panelBg})`;
     vars[`--color-blue-${shade}`] = shade < 700 ? colors.rarityRare : `color-mix(in srgb, ${colors.rarityRare} 28%, ${colors.panelBg})`;

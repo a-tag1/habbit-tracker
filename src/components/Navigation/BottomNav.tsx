@@ -20,16 +20,15 @@ export default function BottomNav({ current, onChange }: Props) {
         <button
           key={item.view}
           onClick={() => onChange(item.view)}
-          className={`flex-1 flex flex-col items-center justify-center py-2.5 gap-0.5 transition-colors ${
-            current === item.view ? 'text-zinc-100' : 'text-zinc-600'
-          }`}
+          style={{ color: 'var(--nav-text, var(--app-color))' }}
+          className="flex-1 flex flex-col items-center justify-center py-2.5 gap-0.5 transition-colors"
         >
           <span style={item.view === 'gacha' && current === item.view ? { color: 'var(--theme-reward)' } : undefined} className="text-base leading-none">
             {item.icon}
           </span>
           <span className="text-[10px] font-medium">{item.label}</span>
           {current === item.view && (
-            <div className={`w-1 h-1 rounded-full mt-0.5 ${item.view === 'gacha' ? 'bg-yellow-400' : 'bg-emerald-400'}`} />
+            <div style={{ backgroundColor: item.view === 'gacha' ? 'var(--theme-reward)' : 'var(--theme-primary)' }} className="w-1 h-1 rounded-full mt-0.5" />
           )}
         </button>
       ))}
