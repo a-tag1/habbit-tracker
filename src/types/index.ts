@@ -45,6 +45,7 @@ export interface ThemeColors {
   panelBgSoft: string;
   navText: string;
   textPrimary: string;
+  dateText: string;
   textSecondary: string;
   textMuted: string;
   border: string;

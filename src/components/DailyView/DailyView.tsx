@@ -104,7 +104,7 @@ export default function DailyView({ tasks, history, currentDate, onDateChange, o
           </button>
 
           <div className="absolute left-1/2 -translate-x-1/2 text-center pointer-events-none">
-            <div className="font-semibold text-base text-zinc-100">{formatDisplayDate(currentDate)}</div>
+            <div className="daily-date font-semibold text-base">{formatDisplayDate(currentDate)}</div>
             {isToday(currentDate) && (
               <div className="text-xs text-emerald-500 mt-0.5">今日</div>
             )}

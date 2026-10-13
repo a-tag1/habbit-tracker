@@ -571,3 +571,7 @@ body {
 .pb-safe {
   padding-bottom: env(safe-area-inset-bottom);
 }
+
+.nav-surface .daily-date {
+  color: var(--theme-date-text) !important;
+}

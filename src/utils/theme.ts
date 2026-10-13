@@ -8,7 +8,7 @@ export const DEFAULT_CUSTOM_THEMES: Record<CustomThemeKey, CustomTheme> = {
     name: 'カスタム1',
     colors: {
       appBg: '#0f172a', navBg: '#111827', panelBg: '#1e293b', panelBgSoft: '#334155', navText: '#f8fafc',
-      textPrimary: '#f8fafc', textSecondary: '#cbd5e1', textMuted: '#94a3b8', border: '#475569',
+      textPrimary: '#f8fafc', dateText: '#f8fafc', textSecondary: '#cbd5e1', textMuted: '#94a3b8', border: '#475569',
       primary: '#0ea5e9', primaryText: '#082f49', cancel: '#475569', cancelText: '#f8fafc',
       complete: '#22c55e', completeText: '#14532d', skip: '#f59e0b', skipText: '#78350f',
       warning: '#f59e0b', danger: '#ef4444', info: '#38bdf8', reward: '#facc15',
@@ -19,7 +19,7 @@ export const DEFAULT_CUSTOM_THEMES: Record<CustomThemeKey, CustomTheme> = {
     name: 'カスタム2',
     colors: {
       appBg: '#fff7f5', navBg: '#7f1d1d', panelBg: '#ffffff', panelBgSoft: '#ffe4e6', navText: '#fff1f2',
-      textPrimary: '#3f1d2e', textSecondary: '#6b3a4c', textMuted: '#9f7483', border: '#fecdd3',
+      textPrimary: '#3f1d2e', dateText: '#3f1d2e', textSecondary: '#6b3a4c', textMuted: '#9f7483', border: '#fecdd3',
       primary: '#be123c', primaryText: '#ffffff', cancel: '#9f1239', cancelText: '#fff1f2',
       complete: '#16a34a', completeText: '#166534', skip: '#d97706', skipText: '#92400e',
       warning: '#d97706', danger: '#dc2626', info: '#0284c7', reward: '#ca8a04',
@@ -30,7 +30,7 @@ export const DEFAULT_CUSTOM_THEMES: Record<CustomThemeKey, CustomTheme> = {
     name: 'カスタム3',
     colors: {
       appBg: '#f3f7f4', navBg: '#14532d', panelBg: '#ffffff', panelBgSoft: '#e8f1eb', navText: '#f0fdf4',
-      textPrimary: '#14231a', textSecondary: '#334b3a', textMuted: '#64776a', border: '#cbd9cf',
+      textPrimary: '#14231a', dateText: '#14231a', textSecondary: '#334b3a', textMuted: '#64776a', border: '#cbd9cf',
       primary: '#166534', primaryText: '#ffffff', cancel: '#475569', cancelText: '#f8fafc',
       complete: '#15803d', completeText: '#166534', skip: '#ca8a04', skipText: '#854d0e',
       warning: '#d97706', danger: '#dc2626', info: '#0369a1', reward: '#ca8a04',
@@ -42,7 +42,7 @@ export const DEFAULT_CUSTOM_THEMES: Record<CustomThemeKey, CustomTheme> = {
 export const FIXED_THEME_COLORS: Record<'black' | 'white-blue', ThemeColors> = {
   black: {
     appBg: '#27272a', navBg: '#09090b', panelBg: '#18181b', panelBgSoft: '#27272a', navText: '#f4f4f5',
-    textPrimary: '#f4f4f5', textSecondary: '#d4d4d8', textMuted: '#a1a1aa', border: '#3f3f46',
+    textPrimary: '#f4f4f5', dateText: '#f4f4f5', textSecondary: '#d4d4d8', textMuted: '#a1a1aa', border: '#3f3f46',
     primary: '#2563eb', primaryText: '#ffffff', cancel: '#3f3f46', cancelText: '#f4f4f5',
     complete: '#3b82f6', completeText: '#93c5fd', skip: '#f59e0b', skipText: '#fbbf24',
     warning: '#f59e0b', danger: '#ef4444', info: '#38bdf8', reward: '#facc15',
@@ -50,7 +50,7 @@ export const FIXED_THEME_COLORS: Record<'black' | 'white-blue', ThemeColors> = {
   },
   'white-blue': {
     appBg: '#ffffff', navBg: '#1e3a8a', panelBg: '#f8fbff', panelBgSoft: '#eff6ff', navText: '#ffffff',
-    textPrimary: '#111827', textSecondary: '#1e3a8a', textMuted: '#334155', border: '#bfdbfe',
+    textPrimary: '#111827', dateText: '#e2e8f0', textSecondary: '#1e3a8a', textMuted: '#334155', border: '#bfdbfe',
     primary: '#2563eb', primaryText: '#ffffff', cancel: '#1e3a8a', cancelText: '#ffffff',
     complete: '#3b82f6', completeText: '#2563eb', skip: '#d97706', skipText: '#b45309',
     warning: '#d97706', danger: '#dc2626', info: '#0284c7', reward: '#ca8a04',
@@ -67,7 +67,7 @@ export const THEME_COLOR_GROUPS: { label: string; fields: { key: keyof ThemeColo
   { label: '背景・文字', fields: [
     { key: 'appBg', label: '全体背景' }, { key: 'navBg', label: 'メニュー背景' },
     { key: 'panelBg', label: 'パネル背景' }, { key: 'panelBgSoft', label: 'サブパネル背景' },
-    { key: 'navText', label: 'メニュー文字' }, { key: 'textPrimary', label: '基本文字' },
+    { key: 'navText', label: 'メニュー文字' }, { key: 'textPrimary', label: '基本文字' }, { key: 'dateText', label: '日付文字' },
     { key: 'textSecondary', label: '補助文字' }, { key: 'textMuted', label: '控えめな文字' },
     { key: 'border', label: '境界線' },
   ] },
@@ -102,7 +102,9 @@ export function normalizeThemeSettings(value: unknown): ThemeSettings | null {
     if (!isRecord(theme) || typeof theme.name !== 'string' || !isRecord(theme.colors)) return null;
     const colors = {} as ThemeColors;
     for (const colorKey of COLOR_KEYS) {
-      const color = theme.colors[colorKey];
+      const color = colorKey === 'dateText' && theme.colors[colorKey] === undefined
+        ? theme.colors.textPrimary
+        : theme.colors[colorKey];
       if (typeof color !== 'string' || !HEX_COLOR.test(color)) return null;
       colors[colorKey] = color;
     }
@@ -160,6 +162,7 @@ function themeVariables(colors: ThemeColors): Record<string, string> {
     '--nav-bg': colors.navBg,
     '--nav-text': colors.navText,
     '--text-primary': colors.textPrimary,
+    '--theme-date-text': colors.dateText,
     '--text-secondary': colors.textSecondary,
     '--text-muted': colors.textMuted,
     '--panel-bg': colors.panelBg,
