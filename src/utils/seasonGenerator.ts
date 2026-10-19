@@ -37,7 +37,7 @@ function pickN<T>(arr: T[], n: number, rng: () => number): T[] {
   return copy.slice(0, Math.min(n, copy.length));
 }
 
-// ── プール（美女系モチーフを追加・拡張） ────────────────────
+// ── プール ────────────────────
 
 const SSR_POOL: Archetype[] = [
   // 既存
@@ -46,8 +46,6 @@ const SSR_POOL: Archetype[] = [
   { nameTemplate: '{theme}の冥王', promptDesc: 'dark underworld king ruler, black ethereal flowing robes, death scythe, shadow realm background, imposing fearsome presence', cheerTemplate: '{theme}の冥王の不動の意志で、今日も絶対に諦めるな！' },
   { nameTemplate: '{theme}の龍皇', promptDesc: 'supreme dragon emperor, majestic enormous dragon form, ancient cosmic power, legendary transcendent presence, catastrophic energy', cheerTemplate: '龍皇の力が宿っている。今日も最高の自分を超えていけ！' },
   { nameTemplate: '{theme}の時神', promptDesc: 'supreme time deity, warping space-time continuum, cosmic clock gears, transcendent timeless form, ultimate divine power', cheerTemplate: '時を超えた力で、あなたの可能性は無限大だ！今こそ動け！' },
-  
-  // 新規追加：美女系モチーフ（10件）
   { nameTemplate: '{theme}の女帝ヴァルキリー', promptDesc: 'medium shot, stunningly beautiful empress valkyrie, majestic golden armor, glowing white wings, radiant divine aura, sharp focus on gorgeous face, flawless skin', cheerTemplate: '{theme}の女帝の神聖な輝きがあなたを守っている。自信を持って頂点を目指そう！' },
   { nameTemplate: '{theme}の竜姫プリムセス', promptDesc: 'medium shot, seductive dragon princess, elegant dragon scale corset, glowing ember eyes, magnificent dragon horns, fiery magical aura, detailed flawless face', cheerTemplate: '竜姫の不屈の情熱を胸に、今日の目標を華麗に射止めよう！' },
   { nameTemplate: '{theme}の漆黒女王', promptDesc: 'medium shot, breathtaking dark queen, ornate black rose lace dress, glowing crimson eyes, dark magical particles, sharp focus on lips and face, alluring expression', cheerTemplate: '漆黒の女王の優雅さと絶対の自信を持って、今日の困難を制圧しよう！' },
@@ -58,6 +56,13 @@ const SSR_POOL: Archetype[] = [
   { nameTemplate: '{theme}の不死鳥舞姫', promptDesc: 'medium shot, radiant phoenix dancer, flowing scarlet and gold feather gown, fiery wings spread, passionate striking face, glowing ember particles', cheerTemplate: '何度でも舞い上がる不死鳥のごとく、熱い情熱で今日の挑戦を楽しもう！' },
   { nameTemplate: '{theme}の時空女魔導士', promptDesc: 'medium shot, beautiful time archmage woman, elaborate clockwork corset, glowing arcane time circles, clever confident smirk, sharp focus', cheerTemplate: '時空を司る賢者のようにスマートに。あなたの時間と才能を最大限に輝かせよう！' },
   { nameTemplate: '{theme}の太陽女神', promptDesc: 'medium shot, dazzling sun goddess, golden solar armor, radiant solar flares behind, warm sunlit glowing skin, majestic powerful beauty', cheerTemplate: '太陽の如き圧倒的な輝きで、周りを明るく照らしながら進もう！' },
+
+  // 新規追加：SSR（5件）
+  { nameTemplate: '{theme}の時空覇王', promptDesc: 'medium shot, supreme time-space lord, temporal reality warping aura, intricate hourglass crown, cosmic starfield background, absolute commanding presence', cheerTemplate: '時空すら支配する覇王の如く、すべての瞬間を自分の好機に変えていこう！' },
+  { nameTemplate: '{theme}の極光神話姫', promptDesc: 'medium shot, mythical aurora princess, glowing shimmering dress of lights, polar sky background, ethereal radiant smile, flawless magical glow', cheerTemplate: '夜空を彩る極光のように美しく。あなただけの特別な輝きで道を照らそう！' },
+  { nameTemplate: '{theme}の神聖創世龍', promptDesc: 'medium shot, divine genesis dragon deity, pure white pearl dragon scales, golden glowing aura, sacred floating runes, majestic supreme force', cheerTemplate: '新たな世界を創る龍神の力とともに！無限の可能性に向かって羽ばたこう！' },
+  { nameTemplate: '{theme}の星海大女神', promptDesc: 'medium shot, grand goddess of the star ocean, deep cosmos flowing hair, glowing celestial staff, starry nebula realm, compassionate divine gaze', cheerTemplate: '星々を統べる女神の加護がここに。あなたの大きな夢を優しく力強く支えよう！' },
+  { nameTemplate: '{theme}の無垢なる聖歌姫', promptDesc: 'medium shot, immaculate choir songstress, shining golden wings, radiant holy microphone, blinding celestial spotlight, enchanting angelic smile', cheerTemplate: '心を揺さぶる歌声のように！希望のメッセージを全力で世界に届けよう！' },
 ];
 
 const SR_POOL: Archetype[] = [
@@ -72,8 +77,6 @@ const SR_POOL: Archetype[] = [
   { nameTemplate: '{theme}の天使', promptDesc: 'radiant divine angel, large shining feathered wings, holy golden light aura, celestial armor, benevolent expression', cheerTemplate: '天使の加護があなたを守っている。自信を持って進め！' },
   { nameTemplate: '{theme}の幻術師', promptDesc: 'illusionist magician, mysterious magical illusion effects, phantom mirror images, shadowy stage performance, enchanting presence', cheerTemplate: '幻術師のように、想像力であなたの現実を塗り替えろ！' },
   { nameTemplate: '{theme}の戦神', promptDesc: 'god of war battle deity, fierce invincible warrior divine form, battlefield domination, powerful divine weapons', cheerTemplate: '戦神の闘志であなたの挑戦に立ち向かい、一歩も引かない！' },
-
-  // 新規追加：美女系モチーフ（20件）
   { nameTemplate: '{theme}の聖剣姫', promptDesc: 'medium shot, seductive female holy knight, sleek silver plate armor, tight fitted breastplate, shining blade, noble fierce expression, sharp focus', cheerTemplate: '凛とした聖剣姫のように気高く。あなたのまっすぐな心が道を切り開く！' },
   { nameTemplate: '{theme}の月下くノ一', promptDesc: 'medium shot, attractive kunoichi assassin, tight black silk outfit, violet moonlight glowing, holding sharp kunai, alluring mysterious gaze', cheerTemplate: 'しなやかで素早い身こなしで、チャンスを瞬時に掴み取ろう！' },
   { nameTemplate: '{theme}の疾風女騎士', promptDesc: 'medium shot, beautiful wind knight woman, feather-decorated light armor, dual rapiers, wind streamers swirling around, confident playful smile', cheerTemplate: '爽やかな風のように自由に、今日のハードルをひらりと飛び越えよう！' },
@@ -94,6 +97,13 @@ const SR_POOL: Archetype[] = [
   { nameTemplate: '{theme}の森の守護巫女', promptDesc: 'medium shot, druid maiden, leaf-braided hair, floral armor accents, glowing green magic, forest animals background, warm eyes', cheerTemplate: '着実に根を伸ばす大樹のように。一歩一歩の努力を大切にしよう！' },
   { nameTemplate: '{theme}の闇夜女盗賊', promptDesc: 'medium shot, phantom thief woman, tight leather suit, sleek domino mask, holding sparkling jewel, mischievous attractive smile', cheerTemplate: '華麗にスマートに。今日の最高のチャンスを誰より早く掴もう！' },
   { nameTemplate: '{theme}の龍血女戦士', promptDesc: 'medium shot, dragon blooded female warrior, draconic red scales on skin, dark steel armor, flaming halberd, fierce amber eyes', cheerTemplate: '覚悟を決めた戦士は強い！限界を突破してさらなる高みへ！' },
+
+  // 新規追加：SR（5件）
+  { nameTemplate: '{theme}の蒼炎戦姫', promptDesc: 'medium shot, fierce blue flame princess, shimmering blue scale armor, glowing azure sword, intense resolute eyes, cool fire particles', cheerTemplate: '静かに燃える蒼い炎のように。ブレない情熱でクールに成果を上げよう！' },
+  { nameTemplate: '{theme}の影刺客女帝', promptDesc: 'medium shot, shadow assassin empress, tight obsidian leather outfit, glowing purple daggers, stealthy moonlight alley, sharp lethal focus', cheerTemplate: '隙のない完璧な動きで目標を一撃必殺！今日の課題を華麗に片付けよう！' },
+  { nameTemplate: '{theme}の幻影歌姫', promptDesc: 'medium shot, phantom diva songstress, ethereal glowing dress, holographic soundwaves, passionate performing pose, captivating expression', cheerTemplate: 'あなたの生み出す雰囲気が周りを惹きつける。自信を持って個性を発揮しよう！' },
+  { nameTemplate: '{theme}の天空守護騎士', promptDesc: 'medium shot, sky guardian knight woman, polished silver plate armor, large shield with crest, flying above clouds, proud fearless gaze', cheerTemplate: '高い志と守護の心で。大切なものを守る強さがあなたを突き動かす！' },
+  { nameTemplate: '{theme}の漆黒魔導女', promptDesc: 'medium shot, dark sorceress lady, velvet black robes, floating dark orb, purple arcane runes, clever confident smile', cheerTemplate: '知性と魔術的な閃きで。複雑な困難も鮮やかに読み解いて進もう！' },
 ];
 
 const R_POOL: Archetype[] = [
@@ -113,8 +123,6 @@ const R_POOL: Archetype[] = [
   { nameTemplate: '{theme}の巫女', promptDesc: 'shrine maiden priestess, spiritual sacred power, ritual ceremony, glowing sacred artifacts and orbs', cheerTemplate: '巫女の祈りのように、あなたの願いは必ず天に届く！' },
   { nameTemplate: '{theme}の竜使い', promptDesc: 'dragon tamer beast master, powerful dragon companion beside, wild adventurous spirit, commanding presence', cheerTemplate: '竜を操るように、あなたも大きな力を持っている！' },
   { nameTemplate: '{theme}の狩人', promptDesc: 'skilled hunter tracker, keen wilderness expertise, camouflage gear, focused intense expression', cheerTemplate: '狩人の鋭い目で目標を定め、今日も着実に進もう！' },
-
-  // 新規追加：美女系モチーフ（30件）
   { nameTemplate: '{theme}の弓術士エルフ', promptDesc: 'medium shot, beautiful elf archer girl, green leaf cloak, delicate longbow, sunlit forest, clear sharp eyes', cheerTemplate: 'ブレない軸を持って集中！狙った的は外さない！' },
   { nameTemplate: '{theme}の猫耳剣士', promptDesc: 'medium shot, cute catgirl swordswoman, cat ears and tail, lightweight leather armor, holding katana, playful smile', cheerTemplate: '軽快に可愛く！自分のフィーリングを信じて進もう！' },
   { nameTemplate: '{theme}の銃士少女', promptDesc: 'medium shot, attractive musketeer girl, feathered hat, holding smoking flintlock pistol, confident expression', cheerTemplate: 'ここぞというタイミングを逃さずに打ち抜こう！' },
@@ -145,6 +153,18 @@ const R_POOL: Archetype[] = [
   { nameTemplate: '{theme}の神官見習い女', promptDesc: 'medium shot, novice priestess, white robes, holding holy scriptures, gentle earnest face', cheerTemplate: '素直でひたむきな姿勢が一番の武器。今日も一生懸命行こう！' },
   { nameTemplate: '{theme}の赤頭巾の猟師女', promptDesc: 'medium shot, red riding hood hunter woman, red hooded cloak, holding hunting rifle, forest background', cheerTemplate: '油断せず着実に。目標に向かって一歩ずつ進もう！' },
   { nameTemplate: '{theme}の時計仕掛けの乙女', promptDesc: 'medium shot, clockwork girl, brass key on back, Victorian dress, ticking gears around, polite smile', cheerTemplate: '一秒一秒を大切に積み重ねて、最高の時間を創り出そう！' },
+
+  // 新規追加：R（10件）
+  { nameTemplate: '{theme}の月影弓使い', promptDesc: 'medium shot, moonlit elven archer, silver cloak, glowing bowstring, full moon night background, calm focused gaze', cheerTemplate: '静けさの中で研ぎ澄まされた集中力を。ターゲットに狙いを定めよう！' },
+  { nameTemplate: '{theme}の精霊舞踏師', promptDesc: 'medium shot, elemental dancer girl, flowing translucent scarves, swirling elemental orbs, vibrant energetic face', cheerTemplate: '軽やかなダンスのように！楽しむ気持ちが最高のステップを生むよ！' },
+  { nameTemplate: '{theme}の聖域護衛兵', promptDesc: 'medium shot, sanctuary guard, polished silver armor, holding Halberd, pristine temple backdrop, alert posture', cheerTemplate: '自分の決意を固く守り抜く。揺るぎない意志を持って進もう！' },
+  { nameTemplate: '{theme}の陽光薬草師', promptDesc: 'medium shot, sunny herbalist girl, straw basket with fresh medicinal herbs, sunlit meadow, bright cheerful smile', cheerTemplate: '日々の小さな心配りが元気を育てる。優しさを大切にいこう！' },
+  { nameTemplate: '{theme}の星空占い少女', promptDesc: 'medium shot, young star astrologer, dark blue cloak with constellation patterns, glowing astrolabe, mystical smile', cheerTemplate: '星々の巡りのように、努力の成果が巡ってくる！今日を楽しもう！' },
+  { nameTemplate: '{theme}の結晶槍使い', promptDesc: 'medium shot, crystal lancer girl, glowing quartz armor, crystalline long spear, sparkling cavern backdrop', cheerTemplate: '硬く透き通る信念を胸に。突き進む一歩が未来を開く！' },
+  { nameTemplate: '{theme}の嵐召喚士', promptDesc: 'medium shot, storm summoner, wind-blown hair, crackling mini lightning in palms, wild energetic gaze', cheerTemplate: '風と嵐を巻き起こすパッションで！滞っていた状況を吹き飛ばそう！' },
+  { nameTemplate: '{theme}の猫耳銃士', promptDesc: 'medium shot, cat-eared musketeer, feather tricorn hat, holding dual pistols, playful smirk, dynamic pose', cheerTemplate: '素早くお茶目に！軽快なフットワークで課題を解決しよう！' },
+  { nameTemplate: '{theme}の夜空旋律士', promptDesc: 'medium shot, night sky violinist, dark dress, violin glowing with stardust, rooftop under starry night', cheerTemplate: 'あなただけの心地よいリズムを刻もう。落ち着いて行けば大丈夫！' },
+  { nameTemplate: '{theme}の焔鍛冶女', promptDesc: 'medium shot, female flame blacksmith, leather apron, holding glowing forged blade, forge sparks flying, confident grin', cheerTemplate: '熱いハートで叩き上げろ！試練を乗り越えるたびに強く美しくなれる！' },
 ];
 
 const N_POOL: Archetype[] = [
@@ -169,8 +189,6 @@ const N_POOL: Archetype[] = [
   { nameTemplate: '{theme}の歌い手', promptDesc: 'singer performer vocalist, stage presence spotlight, emotional singing expression, microphone or instrument', cheerTemplate: '歌い手のように、あなたの声と行動が誰かの心に届く！' },
   { nameTemplate: '{theme}の子供', promptDesc: 'adventurous curious child, innocent wonder and joy, exploring and discovering world, playful bright expression', cheerTemplate: '子供の頃の純粋な好奇心で、今日も新しいことに挑戦しよう！' },
   { nameTemplate: '{theme}の老人', promptDesc: 'wise experienced elder senior, life wisdom and calm, peaceful content expression, long journey behind', cheerTemplate: '長年の経験を積んだ老人のように、焦らず確実に積み重ねよう！' },
-
-  // 新規追加：美女系モチーフ（40件）
   { nameTemplate: '{theme}の看板娘', promptDesc: 'cute tavern waitress girl, traditional apron dress, holding wooden beer mug tray, friendly bright smile', cheerTemplate: '笑顔で明るく過ごせば、良い引き寄せがたくさん起こるよ！' },
   { nameTemplate: '{theme}の見習い魔女っ子', promptDesc: 'cute novice witch girl, slightly oversized hat, small magic wand, clumsy cute pose, cheerful face', cheerTemplate: '失敗しても大丈夫！何度も挑戦することが成功への道！' },
   { nameTemplate: '{theme}の街角のパン屋娘', promptDesc: 'baker girl, flour smudges on cheek, carrying basket of freshly baked bread, sunlit bakery, warm smile', cheerTemplate: '温かい気持ちを忘れずに。今日も一日元気にいこう！' },
@@ -211,6 +229,18 @@ const N_POOL: Archetype[] = [
   { nameTemplate: '{theme}の雨宿りの少女', promptDesc: 'girl sheltering from rain, umbrella, hydrangeas, rainbow emerging through clouds, peaceful smile', cheerTemplate: '雨の後は必ず晴れる！希望を持って進もう！' },
   { nameTemplate: '{theme}の木彫り職人の娘', promptDesc: 'woodcarving girl, small wooden bird figure in hand, cozy workshop, proud happy smile', cheerTemplate: '形が見えてくるまでコツコツと。成果はもうすぐ！' },
   { nameTemplate: '{theme}の雪だるま作りの少女', promptDesc: 'winter girl, knitted scarf and mittens, standing by cute snowman, snowy park, blushing happy smile', cheerTemplate: 'ワクワクする気持ちを大切に、今日も一日楽しもう！' },
+
+  // 新規追加：N（10件）
+  { nameTemplate: '{theme}のパン屋少女', promptDesc: 'simple baker girl, apron, holding basket of fresh warm bread, cozy bakery background, gentle cheerful smile', cheerTemplate: '焼きたてのパンのように周りを温かく。今日も元気に出発しよう！' },
+  { nameTemplate: '{theme}の風車番の娘', promptDesc: 'windmill keeper girl, simple dress, blue sky and green hill backdrop, waving happily', cheerTemplate: '心地よい風に乗るように。自分のペースを大切に進もう！' },
+  { nameTemplate: '{theme}の果樹園収穫娘', promptDesc: 'fruit picker girl, straw hat, holding basket of ripe red apples, sunlit orchard', cheerTemplate: 'コツコツ積み重ねた努力が身を結ぶ！今日も楽しんでいこう！' },
+  { nameTemplate: '{theme}の図書整理係', promptDesc: 'library helper girl, spectacles, holding a stack of books, quiet wooden library background, peaceful face', cheerTemplate: '一冊一冊整理するように、目の前の仕事を丁寧に片付けよう！' },
+  { nameTemplate: '{theme}の見習い看板娘', promptDesc: 'novice tavern waitress, carrying wooden tray, bright lively tavern setting, cute energetic posture', cheerTemplate: '笑顔と元気があれば大丈夫！明るい気持ちで乗り切ろう！' },
+  { nameTemplate: '{theme}の川辺の洗濯娘', promptDesc: 'laundry maid girl, hanging clean white linens under blue sky, sparkling water backdrop, fresh happy face', cheerTemplate: '気分をすっきりリフレッシュ！まっさらな気持ちで挑戦しよう！' },
+  { nameTemplate: '{theme}の街の踊り子娘', promptDesc: 'street dancer girl, simple colorful skirt, tambourine in hand, energetic bright smile', cheerTemplate: '軽やかなステップを踏むように！楽しみながら乗り越えよう！' },
+  { nameTemplate: '{theme}の星観察少女', promptDesc: 'stargazer girl, wrapped in blanket, looking through small telescope under night sky, peaceful smile', cheerTemplate: '静かな夜空に夢を描いて。明日へのエネルギーを蓄えよう！' },
+  { nameTemplate: '{theme}の羊飼い少女', promptDesc: 'shepherd maiden, wooden crook staff, surrounded by fluffy white sheep, green rolling hills', cheerTemplate: 'あせらず、のんびり確実に。一歩ずつ前へ進めば目的地につくよ！' },
+  { nameTemplate: '{theme}の手紙配達員', promptDesc: 'mail delivery girl, leather satchel, riding vintage bicycle, waving hand, bright sunny street', cheerTemplate: '嬉しいニュースを届けるように、爽やかな風になって進もう！' },
 ];
 
 export function generateSeasonCards(theme: string, seasonId: string): CardMaster[] {
