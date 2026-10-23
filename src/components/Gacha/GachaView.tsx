@@ -1,5 +1,5 @@
 ﻿import { useState, useEffect, useRef, useMemo } from 'react';
-import { Zap } from 'lucide-react';
+import { Sparkles, Zap } from 'lucide-react';
 import type { OwnedCard, Rarity, CustomSeason, CardMaster, RegisteredCardImages } from '../../types';
 import { drawCards, drawFocused, preloadImage, regenerateCardImage, GACHA_COST_SINGLE, GACHA_COST_FOCUSED, GACHA_COST_REGENERATE, DUPLICATE_REFUND, type GachaDraw, type DrawContext, type ImageConfig } from '../../utils/gachaUtils';
 import { CARD_MASTER } from '../../utils/cardMaster';
@@ -103,7 +103,7 @@ function CardImage({ url, name, rarity }: { url: string; name: string; rarity: R
   );
 }
 
-function ResultCard({ draw, index }: { draw: GachaDraw; index: number }) {
+function ResultCard({ draw, index, isNew = false }: { draw: GachaDraw; index: number; isNew?: boolean }) {
   const { card, isDuplicate, coinRefund, generatedBy } = draw;
   const style = RARITY_STYLE[card.rarity];
   return (
@@ -115,6 +115,19 @@ function ResultCard({ draw, index }: { draw: GachaDraw; index: number }) {
       <div className="px-2 py-1.5">
         <div className="flex items-center justify-between gap-1">
           <span className={`text-[10px] font-bold ${style.text}`}>{style.label}</span>
+          {isNew && (
+            <span
+              className="inline-flex items-center gap-1 border px-1.5 py-0.5 text-[9px] font-bold animate-[new-badge-in_450ms_cubic-bezier(0.16,1,0.3,1)_both]"
+              style={{
+                color: 'var(--theme-primary)',
+                borderColor: 'color-mix(in srgb, var(--theme-primary) 45%, transparent)',
+                backgroundColor: 'color-mix(in srgb, var(--theme-primary) 12%, var(--panel-bg))',
+              }}
+            >
+              <Sparkles size={10} strokeWidth={2} />
+              NEW
+            </span>
+          )}
           {isDuplicate && <span style={{ color: 'var(--theme-reward)' }} className="text-[10px] font-bold">被り +{coinRefund}🪙</span>}
         </div>
         <p className="text-[11px] text-zinc-200 font-medium leading-tight mt-0.5 truncate">{card.name}</p>
@@ -500,7 +513,7 @@ export default function GachaView({
               <div className="flex-1 overflow-y-auto px-4 py-4">
                 {draws[0] && (
                   <div className="flex flex-col items-center gap-4">
-                    <div className="w-48"><ResultCard draw={draws[0]} index={0} /></div>
+                    <div className="w-48"><ResultCard draw={draws[0]} index={0} isNew={!draws[0].isDuplicate} /></div>
                     <div className={`px-4 py-3 rounded-xl bg-zinc-800 border ${RARITY_STYLE[draws[0].card.rarity].border} max-w-xs w-full`}>
                       <p className="text-xs text-zinc-300 text-center leading-relaxed">{draws[0].card.cheerMessage}</p>
                     </div>
