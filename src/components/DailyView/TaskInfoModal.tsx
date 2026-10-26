@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import type { HistoryEntry, Task } from '../../types';
-import { formatDisplayDate } from '../../utils/dateUtils';
+import { addDays, formatDisplayDate, getDayOfWeek, isFuture, isToday } from '../../utils/dateUtils';
 import { getTaskProgressRates } from '../../utils/statistics';
 
 interface Props {
@@ -27,9 +27,16 @@ function getFrequencyLabel(task: Task): string {
   return `週 ${task.frequencyCount} 回`;
 }
 
+function getHistoryStatus(status: HistoryEntry['status']): { label: string; className: string } {
+  if (status === 'completed') return { label: '✓ 完了', className: 'text-emerald-400' };
+  if (status === 'skipped') return { label: '— スキップ', className: 'text-zinc-400' };
+  return { label: '○ 未完了', className: 'text-zinc-400' };
+}
+
 export default function TaskInfoModal({ task, history, dateStr, onClose }: Props) {
   const rates = getTaskProgressRates(task, history, dateStr);
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const recentDates = Array.from({ length: 7 }, (_, index) => addDays(dateStr, -index));
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -96,6 +103,35 @@ export default function TaskInfoModal({ task, history, dateStr, onClose }: Props
           <div className="flex items-center justify-between gap-4 py-3 text-sm">
             <span className="text-zinc-400">難易度</span>
             <span className="text-right text-zinc-100">{task.difficulty === 'hard' ? 'ハード' : 'ノーマル'}</span>
+          </div>
+        </div>
+
+        <div className="pt-5">
+          <h3 className="text-sm font-medium text-zinc-200 mb-2">直近7日間</h3>
+          <div className="divide-y divide-zinc-800 rounded-lg bg-zinc-800/50 px-3">
+            {recentDates.map(date => {
+              const entry = history.find(item => item.date === date && item.taskId === task.id);
+              const isScheduled = task.frequencyType !== 'weekly'
+                || !task.weekDays?.length
+                || task.weekDays.includes(getDayOfWeek(date));
+              const status = entry
+                ? getHistoryStatus(entry.status)
+                : !isScheduled
+                  ? { label: '対象外', className: 'text-zinc-600' }
+                  : isFuture(date)
+                    ? { label: '未到来', className: 'text-sky-400' }
+                    : { label: '未記録', className: 'text-zinc-500' };
+
+              return (
+                <div key={date} className="flex items-center justify-between gap-3 py-2.5 text-sm">
+                  <span className="text-zinc-300">
+                    {formatDisplayDate(date)}
+                    {isToday(date) && <span className="ml-1.5 text-[11px] text-emerald-500">今日</span>}
+                  </span>
+                  <span className={`shrink-0 text-xs ${status.className}`}>{status.label}</span>
+                </div>
+              );
+            })}
           </div>
         </div>
 
