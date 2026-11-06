@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { ChevronDown } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd';
 import type { Task, HistoryEntry } from '../../types';
 import { getMonthlyStatistics, getNumberStatistics } from '../../utils/statistics';
@@ -46,6 +47,7 @@ export default function StatisticsView({ tasks, history, statsTaskOrder, onStats
   const [baseMonth, setBaseMonth] = useState(today);
   const [reorderMode, setReorderMode] = useState(false);
   const [listMode, setListMode] = useState(false);
+  const [expandedDetailTasks, setExpandedDetailTasks] = useState<Set<string>>(() => new Set());
 
   const isCurrentMonth = baseMonth.slice(0, 7) === today.slice(0, 7);
 
@@ -177,24 +179,46 @@ export default function StatisticsView({ tasks, history, statsTaskOrder, onStats
                 ) : (
                   detailTasks.map(({ task, entries }) => (
                     <section key={task.id} className="mb-5 last:mb-0">
-                      <h2 className="mb-2 text-sm font-medium text-zinc-200">{task.title}</h2>
-                      <div className="overflow-hidden rounded-xl border border-zinc-800">
-                        {entries.map(entry => (
-                          <div key={`${entry.taskId}-${entry.date}`} className="border-b border-zinc-800/80 px-3 py-2.5 last:border-0">
-                            <div className="flex items-start gap-3">
-                              <time className="w-20 shrink-0 pt-0.5 text-xs font-mono text-zinc-500">{entry.date}</time>
-                              <div className="min-w-0 flex-1">
-                                {task.numberEnabled && entry.number !== undefined && (
-                                  <p className="text-sm font-mono text-emerald-400">数値: {entry.number}</p>
-                                )}
-                                {task.memoEnabled && entry.memo?.trim() && (
-                                  <p className="whitespace-pre-wrap break-words text-sm text-zinc-300">{entry.memo}</p>
-                                )}
+                      <h2 className="mb-2">
+                        <button
+                          type="button"
+                          aria-expanded={expandedDetailTasks.has(task.id)}
+                          aria-controls={`task-details-${task.id}`}
+                          onClick={() => setExpandedDetailTasks(current => {
+                            const next = new Set(current);
+                            if (next.has(task.id)) next.delete(task.id);
+                            else next.add(task.id);
+                            return next;
+                          })}
+                          className="flex w-full items-center justify-between gap-3 text-left text-sm font-medium text-zinc-200"
+                        >
+                          <span className="truncate">{task.title}</span>
+                          <ChevronDown
+                            size={16}
+                            aria-hidden="true"
+                            className={`shrink-0 text-zinc-500 transition-transform ${expandedDetailTasks.has(task.id) ? 'rotate-180' : ''}`}
+                          />
+                        </button>
+                      </h2>
+                      {expandedDetailTasks.has(task.id) && (
+                        <div id={`task-details-${task.id}`} className="overflow-hidden rounded-xl border border-zinc-800">
+                          {entries.map(entry => (
+                            <div key={`${entry.taskId}-${entry.date}`} className="border-b border-zinc-800/80 px-3 py-2.5 last:border-0">
+                              <div className="flex items-start gap-3">
+                                <time className="w-20 shrink-0 pt-0.5 text-xs font-mono text-zinc-500">{entry.date}</time>
+                                <div className="min-w-0 flex-1">
+                                  {task.numberEnabled && entry.number !== undefined && (
+                                    <p className="text-sm font-mono text-emerald-400"> {entry.number}</p>
+                                  )}
+                                  {task.memoEnabled && entry.memo?.trim() && (
+                                    <p className="whitespace-pre-wrap break-words text-sm text-zinc-300">{entry.memo}</p>
+                                  )}
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        ))}
-                      </div>
+                          ))}
+                        </div>
+                      )}
                     </section>
                   ))
                 )}
