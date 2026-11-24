@@ -221,8 +221,8 @@ export interface ImageConfig {
 }
 
 const DEFAULT_HF_MODEL = 'stabilityai/stable-diffusion-3-medium-diffusers';
-// 高速かつ高品質な FLUX.1-schnell をデフォルトに設定（SDXL 等に変更も可能）
-const DEFAULT_CF_MODEL = '@cf/black-forest-labs/flux-1-schnell';
+// 高速かつ高品質な FLUX.2-klein-9b をデフォルトに設定（Cloudflare Workers AI の推奨モデル）
+const DEFAULT_CF_MODEL = '@cf/black-forest-labs/flux-2-klein-9b';
 
 async function resolveImageUrl(prompt: string, seed: number, config?: ImageConfig): Promise<{ url: string; generatedBy: GeneratedBy }> {
   // Hugging Face 選択時
