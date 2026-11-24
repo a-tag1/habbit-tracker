@@ -213,7 +213,7 @@ export default function SettingsView({
             {imageSettings.sourceMode === 'generate' && <>
             {/* プロバイダー選択 */}
             <div className="flex gap-2">
-              {(['pollinations', 'huggingface', 'cloudflare', 'aihorde'] as const).map(p => (
+              {(['pollinations', 'cloudflare'] as const).map(p => (
                 <button
                   key={p}
                   onClick={() => onImageSettingsChange({ ...imageSettings, provider: p })}
@@ -225,47 +225,10 @@ export default function SettingsView({
                 >
                   {p === 'pollinations'
                     ? 'Pollinations'
-                    : p === 'huggingface'
-                    ? 'Hugging Face'
-                    : p === 'cloudflare'
-                    ? 'Cloudflare'
-                    : 'AI Horde'}
+                    : 'Cloudflare'}
                 </button>
               ))}
             </div>
-
-            {/* Hugging Face 設定項目の表示 */}
-            {imageSettings.provider === 'huggingface' && (
-              <>
-                <div>
-                  <p className="text-xs text-zinc-400 mb-1.5">APIトークン</p>
-                  <input
-                    type="password"
-                    value={imageSettings.hfToken || ''}
-                    onChange={e => onImageSettingsChange({ ...imageSettings, hfToken: e.target.value })}
-                    placeholder="hf_..."
-                    autoComplete="off"
-                    className="w-full bg-zinc-800 border border-zinc-700 text-zinc-100 placeholder-zinc-600 rounded-xl px-3 py-2.5 text-xs outline-none focus:border-emerald-500 transition-colors font-mono"
-                  />
-                  <p className="text-[10px] text-zinc-600 mt-1">
-                    huggingface.co/settings/tokens でトークンを取得してください
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs text-zinc-400 mb-1.5">モデル</p>
-                  <select
-                    value={imageSettings.hfModel || ''}
-                    onChange={e => onImageSettingsChange({ ...imageSettings, hfModel: e.target.value })}
-                    className="w-full bg-zinc-800 border border-zinc-700 text-zinc-100 rounded-xl px-3 py-2.5 text-xs outline-none focus:border-emerald-500"
-                  >
-                    <option value="stabilityai/stable-diffusion-3-medium-diffusers">SD3 Medium（推奨）</option>
-                    <option value="black-forest-labs/FLUX.1-schnell">FLUX.1-schnell</option>
-                    <option value="black-forest-labs/FLUX.1-dev">FLUX.1-dev</option>
-                  </select>
-                </div>
-                <p className="text-[10px] text-zinc-500">FLUX → nscale  SD3 → hf-inference</p>
-              </>
-            )}
 
             {/* Cloudflare Workers AI 設定項目の表示 */}
             {imageSettings.provider === 'cloudflare' && (
@@ -301,47 +264,11 @@ export default function SettingsView({
               </>
             )}
 
-            {/* AI Horde設定項目の表示 */}
-            {imageSettings.provider === 'aihorde' && (
-              <>
-                <div>
-                  <p className="text-xs text-zinc-400 mb-1.5">APIキー（任意）</p>
-                  <input
-                    type="password"
-                    value={imageSettings.aihordeKey || ''}
-                    onChange={e => onImageSettingsChange({ ...imageSettings, aihordeKey: e.target.value })}
-                    placeholder="0000000000（匿名）"
-                    autoComplete="off"
-                    className="w-full bg-zinc-800 border border-zinc-700 text-zinc-100 placeholder-zinc-600 rounded-xl px-3 py-2.5 text-xs outline-none focus:border-emerald-500 transition-colors font-mono"
-                  />
-                  <p className="text-[10px] text-zinc-600 mt-1">
-                    未入力でも無料利用できます。登録キーを使うと匿名利用より優先度が上がります
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs text-zinc-400 mb-1.5">モデル</p>
-                  <select
-                    value={imageSettings.aihordeModel || 'Deliberate'}
-                    onChange={e => onImageSettingsChange({ ...imageSettings, aihordeModel: e.target.value })}
-                    className="w-full bg-zinc-800 border border-zinc-700 text-zinc-100 rounded-xl px-3 py-2.5 text-xs outline-none focus:border-emerald-500"
-                  >
-                    <option value="Deliberate">Deliberate</option>
-                    <option value="Anything Diffusion">Anything Diffusion</option>
-                    <option value="DreamShaper">DreamShaper</option>
-                  </select>
-                </div>
-              </>
-            )}
-
             {/* フッター説明文 */}
             <p className="text-[10px] text-zinc-600">
               {imageSettings.provider === 'pollinations'
                 ? 'Pollinations.aiで無料生成（APIキー不要）'
-                : imageSettings.provider === 'huggingface'
-                ? 'Hugging Faceで生成（トークン必要・失敗時はpollinationsにフォールバック）'
-                : imageSettings.provider === 'cloudflare'
-                ? 'Cloudflare Workers AIで生成（Worker URLが必要）'
-                : 'AI Hordeで無料生成（混雑時は待ち時間が長くなります）'}
+                : 'Cloudflare Workers AIで生成（Worker URLが必要）'}
             </p>
             </>}
             <div className="flex items-center justify-between gap-3 border-t border-zinc-800 pt-3">
