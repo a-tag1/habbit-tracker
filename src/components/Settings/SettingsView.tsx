@@ -287,14 +287,15 @@ export default function SettingsView({
                 <div>
                   <p className="text-xs text-zinc-400 mb-1.5">モデル</p>
                   <select
-                    value={imageSettings.cfModel || '@cf/bytedance/stable-diffusion-xl-lightning'}
+                    value={imageSettings.cfModel || '@cf/black-forest-labs/flux-2-klein-9b'}
                     onChange={e => onImageSettingsChange({ ...imageSettings, cfModel: e.target.value })}
                     className="w-full bg-zinc-800 border border-zinc-700 text-zinc-100 rounded-xl px-3 py-2.5 text-xs outline-none focus:border-emerald-500"
                   >
-                    <option value="@cf/bytedance/stable-diffusion-xl-lightning">SDXL Lightning（高速・推奨）</option>
-                    <option value="@cf/black-forest-labs/flux-1-schnell">FLUX.1 Schnell</option>
-                    <option value="@cf/stabilityai/stable-diffusion-xl-base-1.0">SDXL Base 1.0</option>
-                    <option value="@cf/lykon/dreamshaper-8-lcm">DreamShaper 8 LCM</option>
+                    <option value="@cf/black-forest-labs/flux-2-klein-9b">FLUX.2 Klein 9B（推奨・画像編集対応）</option>
+                    <option value="@cf/black-forest-labs/flux-2-dev">FLUX.2 Dev（高精細・マルチリファレンス対応）</option>
+                    <option value="@cf/black-forest-labs/flux-1-schnell">FLUX.1 Schnell（高速・12B）</option>
+                    <option value="@cf/black-forest-labs/flux-2-klein-4b">FLUX.2 Klein 4B（超高速・画像編集対応）</option>
+                    <option value="@cf/leonardo/phoenix-1.0">Leonardo Phoenix 1.0（テキスト描画重視）</option>
                   </select>
                 </div>
               </>
